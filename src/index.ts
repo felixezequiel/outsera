@@ -1,0 +1,43 @@
+import express from 'express';
+import { config } from 'dotenv';
+import { setupRoutes } from './main/routes';
+import { connectDatabase, disconnectDatabase } from './infra/db/database';
+
+config();
+
+const app = express();
+app.use(express.json());
+
+setupRoutes(app);
+
+const port = process.env.PORT || 3000;
+
+async function startServer() {
+  try {
+    await connectDatabase();
+    app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    await disconnectDatabase();
+    process.exit(1);
+  }
+}
+
+// Gerenciamento de desligamento gracioso
+process.on('SIGINT', async () => {
+  console.log('Shutting down server...');
+  await disconnectDatabase();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down server...');
+  await disconnectDatabase();
+  process.exit(0);
+});
+
+startServer();
+
+export default app;
