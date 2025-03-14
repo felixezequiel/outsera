@@ -1,6 +1,6 @@
 # Outsera API
 
-API RESTful para gerenciamento de filmes, desenvolvida com Node.js, TypeScript, Express e Prisma, seguindo os princípios da Clean Architecture.
+API para gerenciamento de filmes, com suporte a múltiplas versões.
 
 ## 💻 Pré-requisitos
 
@@ -22,88 +22,87 @@ cd outsera-api
 npm install
 ```
 
-3. Gere o cliente Prisma:
-```bash
-npm run prisma:generate
-```
+3. Configure as variáveis de ambiente copiando o arquivo `.env.example` para `.env`
 
-## ⚙️ Configuração
-
-A aplicação usa as seguintes variáveis de ambiente (já configuradas com valores padrão):
-
-- `PORT`: Porta onde a aplicação irá rodar (padrão: 3000)
-- `DATABASE_URL`: URL do banco de dados (já configurado para usar SQLite em memória)
-
-## 🏃‍♂️ Rodando a aplicação
-
-1. Inicie o servidor em modo desenvolvimento:
+4. Execute o servidor:
 ```bash
 npm run dev
 ```
 
-2. Ou em modo produção:
-```bash
-npm run build
-npm start
+## Versionamento da API
+
+A API suporta múltiplas versões que podem ser acessadas de duas formas:
+
+### 1. Via URL Path
+
+```
+GET http://localhost:3000/api/v1/movies
+GET http://localhost:3000/api/v2/movies
 ```
 
-A API estará disponível em `http://localhost:3000`
+### 2. Via Header
 
-## 🧪 Testes
-
-### Executando os testes de integração
-
-```bash
-npm test
+```
+GET http://localhost:3000/api/movies
+Accept-Version: v1
 ```
 
-Para executar os testes em modo watch:
-```bash
-npm run test:watch
+ou
+
+```
+GET http://localhost:3000/api/movies
+Accept-Version: v2
 ```
 
-Para gerar relatório de cobertura:
-```bash
-npm run test:coverage
-```
+Se nenhuma versão for especificada, a API utilizará a versão mais recente (atualmente v2).
 
-### Sobre os testes
+## Endpoints
 
-- Os testes utilizam um banco de dados SQLite em memória
-- O banco é limpo antes e depois de cada teste
-- São testadas todas as operações CRUD
-- Inclui testes de importação do arquivo CSV
-- Validações de regras de negócio são testadas
+### Versão 1 (v1)
 
-## 📝 Endpoints da API
+#### Filmes
 
-### Filmes
-
-- `GET /api/movies`: Lista todos os filmes
-- `POST /api/movies`: Cria um novo filme
+- `GET /api/v1/movies` - Lista todos os filmes
+- `POST /api/v1/movies` - Cria um novo filme
   ```json
   {
     "title": "Nome do Filme",
-    "year": 2020,
+    "year": 2024,
     "studios": "Estúdio",
     "producers": "Produtor",
     "winner": false
   }
   ```
-- `POST /api/movies/import`: Importa filmes via arquivo CSV
-  - Envie um arquivo CSV usando `multipart/form-data`
-  - Campo do arquivo: `file`
-  - Formato do CSV:
-    ```csv
-    year;title;studios;producers;winner
-    2020;Nome do Filme;Estúdio;Produtor;yes
-    ```
-  - Limite de arquivo: 10MB
-  - Processamento em lotes de 100 registros
-  - Validações:
-    - Arquivo deve ser CSV
-    - Campos obrigatórios: title, year, studios, producers
-    - Campo winner aceita "yes" ou "no"
+- `POST /api/v1/movies/import` - Importa filmes via CSV
+  - Enviar arquivo CSV via multipart/form-data
+  - Campo: `file`
+  - Formato: CSV com delimitador ";"
+  - Colunas: title;year;studios;producers;winner
+
+### Versão 2 (v2)
+
+Atualmente idêntica à v1, preparada para futuras atualizações.
+
+#### Filmes
+
+- `GET /api/v2/movies` - Lista todos os filmes
+- `POST /api/v2/movies` - Cria um novo filme
+- `POST /api/v2/movies/import` - Importa filmes via CSV
+
+## Formato do CSV para Importação
+
+O arquivo CSV deve seguir o seguinte formato:
+
+```csv
+title;year;studios;producers;winner
+Filme A;2020;Estúdio A;Produtor A;yes
+Filme B;2021;Estúdio B;Produtor B;no
+```
+
+- Delimitador: ponto e vírgula (;)
+- Campo winner: "yes" para vencedor, qualquer outro valor para não vencedor
+- Tamanho máximo do arquivo: 10MB
+- Tipo de arquivo: text/csv
 
 ## 🏗️ Arquitetura
 

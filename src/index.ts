@@ -2,12 +2,17 @@ import express from 'express';
 import { config } from 'dotenv';
 import { setupRoutes } from './main/routes';
 import { connectDatabase, disconnectDatabase } from './infra/db/database';
+import { versionControl } from './main/middlewares/version-control';
 
 config();
 
 const app = express();
-app.use(express.json());
 
+// Middlewares
+app.use(express.json());
+app.use(versionControl);
+
+// Rotas
 setupRoutes(app);
 
 const port = process.env.PORT || 3000;
