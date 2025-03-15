@@ -115,7 +115,7 @@ export class GetProducerAwardIntervals {
 
     for (let i = 1; i < years.length; i++) {
       const interval = years[i] - years[i - 1];
-      if (interval <= 0) continue;
+      if (interval < 0) continue;
 
       const currentInterval = {
         producer,
