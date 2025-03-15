@@ -29,80 +29,9 @@ npm install
 npm run dev
 ```
 
-## Versionamento da API
+## 📚 Documentação da API
 
-A API suporta múltiplas versões que podem ser acessadas de duas formas:
-
-### 1. Via URL Path
-
-```
-GET http://localhost:3000/api/v1/movies
-GET http://localhost:3000/api/v2/movies
-```
-
-### 2. Via Header
-
-```
-GET http://localhost:3000/api/movies
-Accept-Version: v1
-```
-
-ou
-
-```
-GET http://localhost:3000/api/movies
-Accept-Version: v2
-```
-
-Se nenhuma versão for especificada, a API utilizará a versão mais recente (atualmente v2).
-
-## Endpoints
-
-### Versão 1 (v1)
-
-#### Filmes
-
-- `GET /api/v1/movies` - Lista todos os filmes
-- `POST /api/v1/movies` - Cria um novo filme
-  ```json
-  {
-    "title": "Nome do Filme",
-    "year": 2024,
-    "studios": "Estúdio",
-    "producers": "Produtor",
-    "winner": false
-  }
-  ```
-- `POST /api/v1/movies/import` - Importa filmes via CSV
-  - Enviar arquivo CSV via multipart/form-data
-  - Campo: `file`
-  - Formato: CSV com delimitador ";"
-  - Colunas: title;year;studios;producers;winner
-
-### Versão 2 (v2)
-
-Atualmente idêntica à v1, preparada para futuras atualizações.
-
-#### Filmes
-
-- `GET /api/v2/movies` - Lista todos os filmes
-- `POST /api/v2/movies` - Cria um novo filme
-- `POST /api/v2/movies/import` - Importa filmes via CSV
-
-## Formato do CSV para Importação
-
-O arquivo CSV deve seguir o seguinte formato:
-
-```csv
-title;year;studios;producers;winner
-Filme A;2020;Estúdio A;Produtor A;yes
-Filme B;2021;Estúdio B;Produtor B;no
-```
-
-- Delimitador: ponto e vírgula (;)
-- Campo winner: "yes" para vencedor, qualquer outro valor para não vencedor
-- Tamanho máximo do arquivo: 10MB
-- Tipo de arquivo: text/csv
+A documentação completa da API, incluindo todos os endpoints disponíveis e o sistema de versionamento, pode ser encontrada no arquivo [API.md](API.md).
 
 ## 🏗️ Arquitetura
 
@@ -142,4 +71,4 @@ Os testes cobrem:
 
 ## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes. 
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.

@@ -1,0 +1,172 @@
+# Documentação da API
+
+## Controle de Versão
+
+A API suporta múltiplas versões que podem ser acessadas de duas formas:
+
+### 1. Via URL Path (Recomendado)
+
+```
+GET http://localhost:3000/api/v1/movies
+GET http://localhost:3000/api/v2/movies
+```
+
+### 2. Via Header
+
+```
+GET http://localhost:3000/api/movies
+Accept-Version: v1
+```
+
+Se nenhuma versão for especificada, a API utilizará a versão mais recente (atualmente v2).
+
+## Endpoints
+
+### Versão 1 (v1)
+
+#### GET /api/v1/movies
+
+Lista todos os filmes cadastrados.
+
+**Parâmetros de Query:**
+- `year` (opcional): Filtra filmes por ano
+- `winner` (opcional): Filtra filmes vencedores (true/false)
+
+**Resposta (200):**
+```json
+[
+  {
+    "id": "uuid",
+    "title": "Nome do Filme",
+    "year": 2024,
+    "studios": "Estúdio",
+    "producers": "Produtor",
+    "winner": false
+  }
+]
+```
+
+#### POST /api/v1/movies
+
+Cria um novo filme.
+
+**Body:**
+```json
+{
+  "title": "Nome do Filme",
+  "year": 2024,
+  "studios": "Estúdio",
+  "producers": "Produtor",
+  "winner": false
+}
+```
+
+**Resposta (201):**
+```json
+{
+  "id": "uuid",
+  "title": "Nome do Filme",
+  "year": 2024,
+  "studios": "Estúdio",
+  "producers": "Produtor",
+  "winner": false
+}
+```
+
+**Erros:**
+- 409: Título duplicado
+- 422: Ano inválido
+
+#### POST /api/v1/movies/import
+
+Importa filmes via arquivo CSV.
+
+**Headers:**
+- Content-Type: multipart/form-data
+
+**Body:**
+- `file`: Arquivo CSV
+
+**Formato do CSV:**
+```csv
+title;year;studios;producers;winner
+Filme A;2020;Estúdio A;Produtor A;yes
+Filme B;2021;Estúdio B;Produtor B;no
+```
+
+**Regras do CSV:**
+- Delimitador: ponto e vírgula (;)
+- Campo winner: "yes" para vencedor, qualquer outro valor para não vencedor
+- Tamanho máximo: 10MB
+- Tipo: text/csv
+
+**Resposta (200):**
+```json
+{
+  "message": "X filmes importados com sucesso"
+}
+```
+
+**Erros:**
+- 400: Arquivo inválido ou formato incorreto
+- 422: Dados inválidos no CSV
+
+#### GET /api/v1/movies/producer-award-intervals
+
+Retorna os produtores com maior e menor intervalo entre dois prêmios consecutivos.
+
+**Resposta (200):**
+```json
+{
+  "min": [
+    {
+      "producer": "Producer 1",
+      "interval": 1,
+      "previousWin": 2008,
+      "followingWin": 2009
+    }
+  ],
+  "max": [
+    {
+      "producer": "Producer 2",
+      "interval": 99,
+      "previousWin": 1900,
+      "followingWin": 1999
+    }
+  ]
+}
+```
+
+### Versão 2 (v2)
+
+A versão 2 da API atualmente mantém os mesmos endpoints da v1, preparada para futuras atualizações:
+
+- GET /api/v2/movies
+- POST /api/v2/movies
+- POST /api/v2/movies/import
+
+## Tratamento de Erros
+
+Todas as respostas de erro seguem o formato:
+
+```json
+{
+  "error": "Mensagem descritiva do erro"
+}
+```
+
+### Códigos de Status
+
+- 200: Sucesso
+- 201: Recurso criado
+- 400: Requisição inválida
+- 409: Conflito (ex: recurso duplicado)
+- 422: Erro de validação
+- 500: Erro interno do servidor
+
+## Limites e Restrições
+
+- Tamanho máximo de arquivo CSV: 10MB
+- Anos válidos: até o ano atual
+- Campos obrigatórios: title, year, studios, producers
+- Campo winner é opcional, default false 
