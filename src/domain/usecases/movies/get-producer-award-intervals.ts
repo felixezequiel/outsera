@@ -115,6 +115,8 @@ export class GetProducerAwardIntervals {
 
     for (let i = 1; i < years.length; i++) {
       const interval = years[i] - years[i - 1];
+
+      // Se ganhou no mesmo ano deve contabilizar como menor intervalo ?
       if (interval < 0) continue;
 
       const currentInterval = {
