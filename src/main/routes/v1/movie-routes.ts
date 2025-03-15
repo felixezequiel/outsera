@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { makeMovieListController } from '../../factories/movies/movie-list-controller-factory';
 import { makeCreateMovieController } from '../../factories/movies/create-movie-controller-factory';
 import { makeImportMoviesController } from '../../factories/movies/import-movies-controller-factory';
+import { makeProducerAwardIntervalsController } from '../../factories/movies/producer-award-intervals-controller-factory';
 import { adaptRoute } from '../../adapters/express-controller-adapter';
 import upload from '../../middlewares/upload';
 
@@ -11,5 +12,8 @@ export default (router: Router): void => {
   router.post('/movies/import', 
     upload.single('file'),
     adaptRoute(makeImportMoviesController())
+  );
+  router.get('/movies/producer-award-intervals', 
+    adaptRoute(makeProducerAwardIntervalsController())
   );
 }; 
