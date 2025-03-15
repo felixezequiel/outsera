@@ -7,109 +7,136 @@ export class GetProducerAwardIntervals {
 
   async execute(): Promise<ProducerAwardIntervalResult> {
     const winners = await this.movieRepository.findWinners();
-    const producerWins = this.mapProducerWins(winners);
-    const intervals = this.calculateIntervals(producerWins);
-
-    if (intervals.length === 0) {
-      return { min: [], max: [] };
-    }
-
-    return this.getMinMaxIntervals(intervals);
+    const producerWins = this.mapProducerWinsOrdered(winners);
+    return this.calculateMinMaxIntervals(producerWins);
   }
 
-  private mapProducerWins(winners: Movie[]): Map<string, number[]> {
+  /**
+   * Mapeia os produtores para seus anos de vitória, já mantendo ordenado
+   */
+  private mapProducerWinsOrdered(winners: Movie[]): Map<string, number[]> {
     const producerWins = new Map<string, number[]>();
     
-    winners.forEach(movie => {
+    // Ordena os filmes por ano uma única vez
+    winners.sort((a, b) => a.year - b.year);
+
+    for (const movie of winners) {
       const producers = this.extractProducers(movie.producers);
-      producers.forEach(producer => {
+      
+      for (const producer of producers) {
         if (!producerWins.has(producer)) {
           producerWins.set(producer, []);
         }
-        const years = producerWins.get(producer);
-        // Evita adicionar o mesmo ano mais de uma vez
-        if (years && !years.includes(movie.year)) {
-          years.push(movie.year);
-        }
-      });
-    });
+        
+        producerWins.get(producer)?.push(movie.year);
+      }
+    }
 
     return producerWins;
   }
 
+  /**
+   * Extrai os produtores de uma string
+   */
   private extractProducers(producersString: string): string[] {
-    return producersString
-      .split(/\s*[,e]\s*/) // Separa por vírgula ou 'e'
-      .map(producer => producer.trim())
-      .filter(producer => producer.length > 0);
-  }
+    // Separa os produtores que estão divididos por vírgula
+    const producersSplitByComma = producersString.split(',');
 
-  private calculateIntervals(producerWins: Map<string, number[]>): ProducerAwardInterval[] {
-    const intervals: ProducerAwardInterval[] = [];
-
-    producerWins.forEach((wins, producer) => {
-      if (wins.length < 2) return;
-      
-      const sortedWins = [...wins].sort((a, b) => a - b);
-      const producerIntervals = this.calculateProducerIntervals(producer, sortedWins);
-      
-      // Filtra intervalos maiores que zero
-      const validIntervals = producerIntervals.filter(interval => interval.interval > 0);
-      if (validIntervals.length > 0) {
-        intervals.push(...validIntervals);
-      }
+    // Para cada grupo separado por vírgula, divide os que estão conectados por "and"
+    const producersSplitByAnd = producersSplitByComma.flatMap(producerGroup => {
+      const trimmedGroup = producerGroup.trim();
+      return trimmedGroup.split(/\s+and\s+/);
     });
 
-    return intervals;
+    // Remove espaços em branco extras e filtra valores vazios
+    const cleanedProducers = producersSplitByAnd
+      .map(producer => producer.trim())
+      .filter(Boolean);
+
+    return cleanedProducers;
   }
 
-  private calculateProducerIntervals(producer: string, wins: number[]): ProducerAwardInterval[] {
-    const intervals: ProducerAwardInterval[] = [];
+  /**
+   * Calcula os intervalos mínimos e máximos em uma única passagem
+   */
+  private calculateMinMaxIntervals(producerWins: Map<string, number[]>): ProducerAwardIntervalResult {
+    let minInterval = Infinity;
+    let maxInterval = -1;
+    const minIntervals: ProducerAwardInterval[] = [];
+    const maxIntervals: ProducerAwardInterval[] = [];
 
-    for (let i = 1; i < wins.length; i++) {
-      const interval = wins[i] - wins[i - 1];
-      // Só adiciona se o intervalo for maior que zero
-      if (interval > 0) {
-        intervals.push({
-          producer,
-          interval,
-          previousWin: wins[i - 1],
-          followingWin: wins[i]
-        });
+    for (const [producer, years] of producerWins) {
+      // Se o produtor não tem pelo menos 2 vitórias, continua
+      if (years.length < 2) continue;
+
+      // Como os anos já estão ordenados, calculamos os intervalos em uma única passagem
+      const producerIntervals = this.findProducerMinMaxInterval(producer, years);
+      
+      if (!producerIntervals) continue;
+
+      const { minProducerInterval, maxProducerInterval } = producerIntervals;
+
+      // Atualiza intervalos mínimos
+      if (minProducerInterval.interval < minInterval) {
+        minInterval = minProducerInterval.interval;
+        minIntervals.length = 0;
+        minIntervals.push(minProducerInterval);
+      } else if (minProducerInterval.interval === minInterval) {
+        minIntervals.push(minProducerInterval);
+      }
+
+      // Atualiza intervalos máximos
+      if (maxProducerInterval.interval > maxInterval) {
+        maxInterval = maxProducerInterval.interval;
+        maxIntervals.length = 0;
+        maxIntervals.push(maxProducerInterval);
+      } else if (maxProducerInterval.interval === maxInterval) {
+        maxIntervals.push(maxProducerInterval);
       }
     }
 
-    return intervals;
+    return { min: minIntervals, max: maxIntervals };
   }
 
-  private getMinMaxIntervals(intervals: ProducerAwardInterval[]): ProducerAwardIntervalResult {
-    // Ordena por intervalo e depois por ano anterior em caso de empate
-    intervals.sort((a, b) => {
-      if (a.interval !== b.interval) {
-        return a.interval - b.interval;
+  /**
+   * Encontra o menor e maior intervalo de um produtor em uma única passagem
+   */
+  private findProducerMinMaxInterval(producer: string, years: number[]): { 
+    minProducerInterval: ProducerAwardInterval; 
+    maxProducerInterval: ProducerAwardInterval; 
+  } | null {
+    // Se o produtor não tem pelo menos 2 vitórias, retorna null
+    if (years.length < 2) return null;
+
+    let minInterval = Infinity;
+    let maxInterval = -1;
+    let minProducerInterval: ProducerAwardInterval | null = null;
+    let maxProducerInterval: ProducerAwardInterval | null = null;
+
+    for (let i = 1; i < years.length; i++) {
+      const interval = years[i] - years[i - 1];
+      if (interval <= 0) continue;
+
+      const currentInterval = {
+        producer,
+        interval,
+        previousWin: years[i - 1],
+        followingWin: years[i]
+      };
+
+      if (interval < minInterval) {
+        minInterval = interval;
+        minProducerInterval = currentInterval;
       }
-      return a.previousWin - b.previousWin;
-    });
 
-    // Encontra o menor intervalo válido (maior que zero)
-    const minInterval = intervals[0].interval;
-    
-    // Encontra o maior intervalo
-    const maxInterval = intervals[intervals.length - 1].interval;
+      if (interval > maxInterval) {
+        maxInterval = interval;
+        maxProducerInterval = currentInterval;
+      }
+    }
 
-    // Pega os 2 produtores com menor intervalo
-    const minIntervals = intervals
-      .filter(i => i.interval === minInterval)
-      .slice(0, 2);
+    if (!minProducerInterval || !maxProducerInterval) return null;
 
-    // Pega os 2 produtores com maior intervalo
-    const maxIntervals = intervals
-      .filter(i => i.interval === maxInterval)
-      .slice(0, 2);
-
-    return {
-      min: minIntervals,
-      max: maxIntervals
-    };
+    return { minProducerInterval, maxProducerInterval };
   }
 }
