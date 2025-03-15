@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { Transform } from 'stream';
 import { Controller } from '../../interfaces/controller';
 import { Presenter } from '../../interfaces/presenter';
 import { HttpResponse } from '../../interfaces/http';
