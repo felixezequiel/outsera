@@ -4,6 +4,8 @@ import { setupRoutes } from './main/routes';
 import { connectDatabase, disconnectDatabase } from './infra/db/database';
 import { versionControl } from './main/middlewares/version-control';
 import { multerErrorHandler } from './main/middlewares/multer-error-handler';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './main/config/swagger';
 
 config();
 
@@ -12,6 +14,9 @@ const app = express();
 // Middlewares
 app.use(express.json());
 app.use(versionControl);
+
+// Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Rotas
 setupRoutes(app);
@@ -26,6 +31,7 @@ async function startServer() {
     await connectDatabase();
     app.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
+      console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
