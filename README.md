@@ -90,13 +90,46 @@ O projeto segue os princípios da Clean Architecture:
 
 ```
 src/
-├── domain/         # Regras de negócio e entidades
-├── data/          # Interfaces de repositórios
-├── infra/         # Implementações (banco de dados, etc)
-├── presentation/  # Controllers e presenters
-├── main/          # Configuração e composição
-└── tests/         # Testes de integração
+├── domain/         # Entidades e regras de negócio fundamentais
+├── application/    # Use cases e regras de aplicação
+├── data/          # Interfaces de repositórios e abstrações
+├── infra/         # Implementações concretas (DB, frameworks, etc)
+├── presentation/  # Controllers, presenters e adaptadores de UI
+├── main/          # Configuração, composição e bootstrap
+└── tests/         # Testes de integração e unitários
 ```
+
+### Camadas
+
+1. **Domain**: Contém apenas entidades e regras de negócio fundamentais
+   - Entidades (Movie, Producer, etc.)
+   - Interfaces base do domínio
+   - Regras de negócio invariantes
+
+2. **Application**: Implementa os casos de uso da aplicação
+   - Use cases específicos
+   - Regras de negócio da aplicação
+   - Orquestração entre entidades
+
+3. **Data**: Define contratos para acesso a dados
+   - Interfaces de repositórios
+   - DTOs
+   - Contratos de serviços
+
+4. **Infrastructure**: Implementações concretas
+   - Repositórios
+   - Serviços externos
+   - Frameworks e bibliotecas
+
+5. **Presentation**: Interface com o usuário
+   - Controllers
+   - Presenters
+   - Adaptadores de API
+
+6. **Main**: Composição e configuração
+   - Factories
+   - Configurações
+   - Bootstrap da aplicação
 
 ## 🔍 Características
 

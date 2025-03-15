@@ -26,7 +26,7 @@ export default (router: Router): void => {
    *         description: Filtra filmes vencedores
    *     responses:
    *       200:
-   *         description: Lista de filmes
+   *         description: Lista de filmes retornada com sucesso
    *         content:
    *           application/json:
    *             schema:
@@ -48,6 +48,24 @@ export default (router: Router): void => {
    *                   winner:
    *                     type: boolean
    *                     default: false
+   *       400:
+   *         description: Parâmetros de consulta inválidos
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       500:
+   *         description: Erro interno do servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    */
   router.get('/movies', adaptRoute(makeMovieListController()));
 
@@ -97,6 +115,42 @@ export default (router: Router): void => {
    *                   type: string
    *                 winner:
    *                   type: boolean
+   *       400:
+   *         description: Dados inválidos no corpo da requisição
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       409:
+   *         description: Filme já existe para o mesmo título e ano
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       422:
+   *         description: Erro de validação (ex: ano inválido, título em branco)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       500:
+   *         description: Erro interno do servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    */
   router.post('/movies', adaptRoute(makeCreateMovieController()));
 
@@ -127,6 +181,42 @@ export default (router: Router): void => {
    *               properties:
    *                 message:
    *                   type: string
+   *       400:
+   *         description: Arquivo não fornecido ou formato inválido
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       415:
+   *         description: Tipo de arquivo não suportado (apenas CSV é aceito)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       422:
+   *         description: Erro de validação nos dados do CSV
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       500:
+   *         description: Erro interno do servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    */
   router.post('/movies/import', 
     upload.single('file'),
@@ -154,12 +244,16 @@ export default (router: Router): void => {
    *                     properties:
    *                       producer:
    *                         type: string
+   *                         description: Nome do produtor
    *                       interval:
    *                         type: integer
+   *                         description: Intervalo entre os prêmios
    *                       previousWin:
    *                         type: integer
+   *                         description: Ano da primeira vitória
    *                       followingWin:
    *                         type: integer
+   *                         description: Ano da segunda vitória
    *                 max:
    *                   type: array
    *                   items:
@@ -167,12 +261,34 @@ export default (router: Router): void => {
    *                     properties:
    *                       producer:
    *                         type: string
+   *                         description: Nome do produtor
    *                       interval:
    *                         type: integer
+   *                         description: Intervalo entre os prêmios
    *                       previousWin:
    *                         type: integer
+   *                         description: Ano da primeira vitória
    *                       followingWin:
    *                         type: integer
+   *                         description: Ano da segunda vitória
+   *       404:
+   *         description: Nenhum produtor encontrado com múltiplos prêmios
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *       500:
+   *         description: Erro interno do servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    */
   router.get('/movies/producer-award-intervals', 
     adaptRoute(makeProducerAwardIntervalsController())

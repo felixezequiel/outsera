@@ -3,7 +3,7 @@ import { Transform } from 'stream';
 import { Controller } from '../../interfaces/controller';
 import { Presenter } from '../../interfaces/presenter';
 import { HttpResponse } from '../../interfaces/http';
-import { ImportMovies } from '../../../domain/usecases/movies/import-movies';
+import { ImportMovies } from '../../../application/use-cases/movies/import-movies';
 import { CreateMovieData } from '../../../domain/entities/movie';
 import { ValidationError } from '../../interfaces/error';
 import { CsvMovieTransformer } from './csv-movie-transformer';

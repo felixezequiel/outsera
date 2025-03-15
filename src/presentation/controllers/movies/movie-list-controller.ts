@@ -1,5 +1,5 @@
 import { Controller } from "../../interfaces/controller";
-import { DbMovieList } from "../../../domain/usecases/movies/movie-list";
+import { DbMovieList } from "../../../application/use-cases/movies/movie-list";
 import { HttpResponse } from "../../interfaces/http";
 import { Presenter } from '../../interfaces/presenter';
 

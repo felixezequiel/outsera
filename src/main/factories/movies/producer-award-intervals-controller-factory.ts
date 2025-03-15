@@ -1,6 +1,6 @@
 import { ProducerAwardIntervalsController } from '../../../presentation/controllers/movies/producer-award-intervals-controller';
 import { PrismaMovieRepository } from '../../../infra/db/prisma-movie-repository';
-import { GetProducerAwardIntervals } from '../../../domain/usecases/movies/get-producer-award-intervals';
+import { GetProducerAwardIntervals } from '../../../application/use-cases/movies/get-producer-award-intervals';
 import { HttpPresenter } from '../../../presentation/presenters/http-presenter';
 
 export const makeProducerAwardIntervalsController = (): ProducerAwardIntervalsController => {

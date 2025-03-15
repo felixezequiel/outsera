@@ -1,6 +1,6 @@
 import { MovieListController } from '../../../presentation/controllers/movies/movie-list-controller';
 import { PrismaMovieRepository } from '../../../infra/db/prisma-movie-repository';
-import { DbMovieList } from '../../../domain/usecases/movies/movie-list';
+import { DbMovieList } from '../../../application/use-cases/movies/movie-list';
 import { HttpPresenter } from '../../../presentation/presenters/http-presenter';
 
 export const makeMovieListController = (): MovieListController => {

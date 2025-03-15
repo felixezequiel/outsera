@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Controller } from '../../interfaces/controller';
 import { Presenter } from '../../interfaces/presenter';
 import { HttpResponse } from '../../interfaces/http';
-import { GetProducerAwardIntervals } from '../../../domain/usecases/movies/get-producer-award-intervals';
+import { GetProducerAwardIntervals } from '../../../application/use-cases/movies/get-producer-award-intervals';
 
 export class ProducerAwardIntervalsController implements Controller {
   constructor(

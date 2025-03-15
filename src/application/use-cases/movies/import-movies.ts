@@ -1,5 +1,5 @@
 import { MovieRepository } from '../../../data/interfaces/movie-repository';
-import { CreateMovieData } from '../../entities/movie';
+import { CreateMovieData } from '../../../domain/entities/movie';
 import { ValidationError } from '../../../presentation/interfaces/error';
 
 export class ImportMovies {

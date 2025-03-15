@@ -1,6 +1,6 @@
 import { ImportMoviesController } from '../../../presentation/controllers/movies/import-movies-controller';
 import { PrismaMovieRepository } from '../../../infra/db/prisma-movie-repository';
-import { ImportMovies } from '../../../domain/usecases/movies/import-movies';
+import { ImportMovies } from '../../../application/use-cases/movies/import-movies';
 import { HttpPresenter } from '../../../presentation/presenters/http-presenter';
 
 export const makeImportMoviesController = (): ImportMoviesController => {

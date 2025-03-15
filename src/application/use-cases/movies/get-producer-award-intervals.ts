@@ -1,6 +1,6 @@
 import { MovieRepository } from '../../../data/interfaces/movie-repository';
-import { ProducerAwardInterval, ProducerAwardIntervalResult } from '../../entities/producer-award-interval';
-import { Movie } from '../../entities/movie';
+import { ProducerAwardInterval, ProducerAwardIntervalResult } from '../../../domain/entities/producer-award-interval';
+import { Movie } from '../../../domain/entities/movie';
 
 export class GetProducerAwardIntervals {
   constructor(private readonly movieRepository: MovieRepository) {}

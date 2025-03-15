@@ -1,5 +1,5 @@
-import { Movie, CreateMovieData } from '../../entities/movie';
 import { MovieRepository } from '../../../data/interfaces/movie-repository';
+import { CreateMovieData, Movie } from '../../../domain/entities/movie';
 import { ValidationError, ConflictError, UnprocessableEntityError } from '../../../presentation/interfaces/error';
 
 export class CreateMovie {
