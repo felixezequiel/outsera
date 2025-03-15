@@ -6,12 +6,12 @@ const upload = multer({
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB
   },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype !== 'text/csv') {
-      cb(new Error('Apenas arquivos CSV são permitidos'));
-      return;
+  fileFilter: (req, file, callback) => {
+    if (!file.originalname.toLowerCase().endsWith('.csv') || 
+        file.mimetype !== 'text/csv') {
+      return callback(new Error('Apenas arquivos CSV são permitidos'));
     }
-    cb(null, true);
+    callback(null, true);
   }
 });
 

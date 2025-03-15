@@ -105,7 +105,6 @@ export class GetProducerAwardIntervals {
     minProducerInterval: ProducerAwardInterval; 
     maxProducerInterval: ProducerAwardInterval; 
   } | null {
-    // Se o produtor não tem pelo menos 2 vitórias, retorna null
     if (years.length < 2) return null;
 
     let minInterval = Infinity;

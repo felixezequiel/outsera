@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { setupRoutes } from './main/routes';
 import { connectDatabase, disconnectDatabase } from './infra/db/database';
 import { versionControl } from './main/middlewares/version-control';
+import { multerErrorHandler } from './main/middlewares/multer-error-handler';
 
 config();
 
@@ -14,6 +15,9 @@ app.use(versionControl);
 
 // Rotas
 setupRoutes(app);
+
+// Error Handlers
+app.use(multerErrorHandler);
 
 const port = process.env.PORT || 3000;
 

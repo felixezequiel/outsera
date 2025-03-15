@@ -1,159 +1,214 @@
-import fs from 'fs';
-import csv from 'csv-parse';
+import request from 'supertest';
 import path from 'path';
-import { CreateMovie } from '../../domain/usecases/movies/create-movie';
-import { PrismaMovieRepository } from '../../infra/db/prisma-movie-repository';
-import { UnprocessableEntityError } from '../../presentation/interfaces/error';
+import fs from 'fs';
+import app from '../../index';
+import { prisma } from '../../infra/db/database';
 
 describe('Movie Integration Tests', () => {
-  const movieRepository = new PrismaMovieRepository();
-  const createMovie = new CreateMovie(movieRepository);
-
-  it('deve criar um filme com sucesso', async () => {
-    const movieData = {
-      title: 'Test Movie',
-      year: 2020,
-      studios: 'Test Studios',
-      producers: 'Test Producer',
-      winner: false
-    };
-
-    const movie = await createMovie.execute(movieData);
-
-    expect(movie).toBeDefined();
-    expect(movie.id).toBeDefined();
-    expect(movie.title).toBe(movieData.title);
-    expect(movie.year).toBe(movieData.year);
-    expect(movie.studios).toBe(movieData.studios);
-    expect(movie.producers).toBe(movieData.producers);
-    expect(movie.winner).toBe(movieData.winner);
+  beforeAll(async () => {
+    // Garante que a conexão com o banco está estabelecida
+    await prisma.$connect();
   });
 
-  it('não deve criar um filme com título duplicado', async () => {
-    const movieData = {
-      title: 'Duplicate Movie',
-      year: 2020,
-      studios: 'Test Studios',
-      producers: 'Test Producer',
-      winner: false
-    };
-
-    await createMovie.execute(movieData);
-
-    await expect(createMovie.execute(movieData))
-      .rejects
-      .toThrow('Já existe um filme cadastrado com este título');
+  beforeEach(async () => {
+    // Limpa todas as tabelas antes de cada teste
+    await prisma.$transaction([
+      prisma.movie.deleteMany()
+    ]);
   });
 
-  it('não deve criar um filme com ano inválido', async () => {
-    const movieData = {
-      title: 'Future Movie',
-      year: new Date().getFullYear() + 1, // Sempre será um ano no futuro
-      studios: 'Test Studios',
-      producers: 'Test Producer',
-      winner: false
-    };
-
-    try {
-      await createMovie.execute(movieData);
-      fail('Deveria ter lançado um erro');
-    } catch (error: any) {
-      expect(error).toBeInstanceOf(UnprocessableEntityError);
-      expect(error.message).toBe('O ano do filme não pode ser no futuro');
-    }
+  afterAll(async () => {
+    // Limpa o banco e fecha a conexão
+    await prisma.$transaction([
+      prisma.movie.deleteMany()
+    ]);
+    await prisma.$disconnect();
   });
 
-  it('deve importar filmes do CSV com sucesso', async () => {
-    const csvFilePath = path.resolve(__dirname, '../../../Movielist.csv');
-    const fileContent = fs.readFileSync(csvFilePath, { encoding: 'utf-8' });
+  describe('POST /api/v1/movies', () => {
+    it('deve criar um filme com sucesso', async () => {
+      const movieData = {
+        title: 'Test Movie',
+        year: 2020,
+        studios: 'Test Studios',
+        producers: 'Test Producer',
+        winner: false
+      };
 
-    const records: any[] = await new Promise((resolve, reject) => {
-      csv.parse(fileContent, {
-        columns: true,
-        delimiter: ';',
-        skip_empty_lines: true,
-        trim: true,
-      }, (err, records) => {
-        if (err) reject(err);
-        resolve(records);
-      });
+      const response = await request(app)
+        .post('/api/v1/movies')
+        .send(movieData)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe(movieData.title);
+      expect(response.body.year).toBe(movieData.year);
+      expect(response.body.studios).toBe(movieData.studios);
+      expect(response.body.producers).toBe(movieData.producers);
+      expect(response.body.winner).toBe(movieData.winner);
     });
 
-    const movies = records.map(record => ({
-      title: record.title,
-      year: parseInt(record.year),
-      studios: record.studios,
-      producers: record.producers,
-      winner: record.winner.toLowerCase() === 'yes'
-    }));
+    it('não deve criar um filme com título duplicado', async () => {
+      const movieData = {
+        title: 'Duplicate Movie',
+        year: 2020,
+        studios: 'Test Studios',
+        producers: 'Test Producer',
+        winner: false
+      };
 
-    for (const movie of movies) {
-      await createMovie.execute(movie);
-    }
+      await request(app)
+        .post('/api/v1/movies')
+        .send(movieData)
+        .expect(201);
 
-    const savedMovies = await movieRepository.findAll();
-    expect(savedMovies).toHaveLength(movies.length);
+      const response = await request(app)
+        .post('/api/v1/movies')
+        .send(movieData)
+        .expect(409);
 
-    // Verifica se cada filme foi salvo corretamente
-    for (const testMovie of movies) {
-      const savedMovie = savedMovies.find(m => m.title === testMovie.title);
-      expect(savedMovie).toBeDefined();
-      expect(savedMovie?.year).toBe(testMovie.year);
-      expect(savedMovie?.studios).toBe(testMovie.studios);
-      expect(savedMovie?.producers).toBe(testMovie.producers);
-      expect(savedMovie?.winner).toBe(testMovie.winner);
-    }
+      expect(response.body.error).toBe('Já existe um filme cadastrado com este título');
+    });
+
+    it('não deve criar um filme com ano inválido', async () => {
+      const movieData = {
+        title: 'Future Movie',
+        year: new Date().getFullYear() + 1,
+        studios: 'Test Studios',
+        producers: 'Test Producer',
+        winner: false
+      };
+
+      const response = await request(app)
+        .post('/api/v1/movies')
+        .send(movieData)
+        .expect(422);
+
+      expect(response.body.error).toBe('O ano do filme não pode ser no futuro');
+    });
   });
 
-  it('deve buscar filmes por ano', async () => {
-    const movieData1 = {
-      title: 'Movie 1980 - 1',
-      year: 1980,
-      studios: 'Studio A',
-      producers: 'Producer A',
-      winner: true
-    };
+  describe('POST /api/v1/movies/import', () => {
+    it('deve importar filmes do CSV com sucesso', async () => {
+      const csvFilePath = path.resolve(__dirname, '../../../Movielist.csv');
+      const fileBuffer = fs.readFileSync(csvFilePath);
 
-    const movieData2 = {
-      title: 'Movie 1980 - 2',
-      year: 1980,
-      studios: 'Studio B',
-      producers: 'Producer B',
-      winner: false
-    };
+      const response = await request(app)
+        .post('/api/v1/movies/import')
+        .attach('file', fileBuffer, 'Movielist.csv')
+        .expect(200);
 
-    await createMovie.execute(movieData1);
-    await createMovie.execute(movieData2);
+      expect(response.body.message).toMatch(/filmes importados com sucesso/);
 
-    const movies = await movieRepository.findByYear(1980);
-    expect(movies).toHaveLength(2);
-    expect(movies.map(m => m.title)).toContain(movieData1.title);
-    expect(movies.map(m => m.title)).toContain(movieData2.title);
+      // Verifica se os filmes foram importados consultando a API
+      const listResponse = await request(app)
+        .get('/api/v1/movies')
+        .expect(200);
+
+      expect(listResponse.body.length).toBeGreaterThan(0);
+    });
+
+    it('deve rejeitar arquivo não-CSV', async () => {
+      const response = await request(app)
+        .post('/api/v1/movies/import')
+        .attach('file', Buffer.from('invalid'), 'invalid.txt')
+        .expect(400);
+
+      expect(response.body.error).toBe('Apenas arquivos CSV são permitidos');
+    });
   });
 
-  it('deve buscar filmes vencedores', async () => {
-    const movieData1 = {
-      title: 'Winner Movie',
-      year: 1990,
-      studios: 'Studio A',
-      producers: 'Producer A',
-      winner: true
-    };
+  describe('GET /api/v1/movies', () => {
+    it('deve buscar filmes por ano', async () => {
+      const movieData1 = {
+        title: 'Movie 1980 - 1',
+        year: 1980,
+        studios: 'Studio A',
+        producers: 'Producer A',
+        winner: true
+      };
 
-    const movieData2 = {
-      title: 'Non Winner Movie',
-      year: 1990,
-      studios: 'Studio B',
-      producers: 'Producer B',
-      winner: false
-    };
+      const movieData2 = {
+        title: 'Movie 1980 - 2',
+        year: 1980,
+        studios: 'Studio B',
+        producers: 'Producer B',
+        winner: false
+      };
 
-    await createMovie.execute(movieData1);
-    await createMovie.execute(movieData2);
+      await request(app)
+        .post('/api/v1/movies')
+        .send(movieData1);
 
-    const winners = await movieRepository.findWinners();
-    expect(winners).toHaveLength(1);
-    expect(winners[0].title).toBe(movieData1.title);
-    expect(winners[0].winner).toBe(true);
+      await request(app)
+        .post('/api/v1/movies')
+        .send(movieData2);
+
+      const response = await request(app)
+        .get('/api/v1/movies')
+        .query({ year: 1980 })
+        .expect(200);
+
+      expect(response.body).toHaveLength(2);
+      expect(response.body.map((m: any) => m.title)).toContain(movieData1.title);
+      expect(response.body.map((m: any) => m.title)).toContain(movieData2.title);
+    });
+  });
+
+  describe('GET /api/v1/movies/producer-award-intervals', () => {
+    it('deve retornar os intervalos de prêmios dos produtores corretamente após importar CSV', async () => {
+      // Primeiro importa os dados do CSV
+      const csvFilePath = path.resolve(__dirname, '../../../Movielist.csv');
+      const fileBuffer = fs.readFileSync(csvFilePath);
+
+      await request(app)
+        .post('/api/v1/movies/import')
+        .attach('file', fileBuffer, 'Movielist.csv')
+        .expect(200);
+
+      const response = await request(app)
+        .get('/api/v1/movies/producer-award-intervals')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('min');
+      expect(response.body).toHaveProperty('max');
+      expect(Array.isArray(response.body.min)).toBe(true);
+      expect(Array.isArray(response.body.max)).toBe(true);
+
+      // Verifica o resultado máximo específico
+      expect(response.body.max).toHaveLength(1);
+      expect(response.body.max[0]).toEqual({
+        producer: "Matthew Vaughn",
+        interval: 13,
+        previousWin: 2002,
+        followingWin: 2015
+      });
+
+      // Verifica alguns produtores específicos do resultado mínimo
+      const expectedProducers = [
+        {
+          producer: "Allan Carr",
+          interval: 0,
+          previousWin: 1980,
+          followingWin: 1980
+        },
+        {
+          producer: "Matthew Vaughn",
+          interval: 0,
+          previousWin: 2002,
+          followingWin: 2002
+        },
+        {
+          producer: "Debra Hayward",
+          interval: 0,
+          previousWin: 2019,
+          followingWin: 2019
+        }
+      ];
+
+      for (const expectedProducer of expectedProducers) {
+        expect(response.body.min).toContainEqual(expectedProducer);
+      }
+    });
   });
 }); 

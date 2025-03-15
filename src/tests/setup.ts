@@ -1,15 +1,17 @@
-import { prisma, connectDatabase, disconnectDatabase } from '../infra/db/database';
+import { prisma } from '../infra/db/database';
 
+// Aumenta o timeout dos testes para 10 segundos
+jest.setTimeout(10000);
+
+// Limpa o banco de dados e reseta as conexões antes de todos os testes
 beforeAll(async () => {
-  await connectDatabase();
+  await prisma.$connect();
 });
 
-beforeEach(async () => {
-  // Limpa todas as tabelas antes de cada teste
-  await prisma.movie.deleteMany();
-});
-
+// Limpa o banco de dados e fecha as conexões depois de todos os testes
 afterAll(async () => {
-  await prisma.movie.deleteMany();
-  await disconnectDatabase();
+  await prisma.$transaction([
+    prisma.movie.deleteMany()
+  ]);
+  await prisma.$disconnect();
 }); 

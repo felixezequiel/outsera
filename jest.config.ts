@@ -7,5 +7,7 @@ export default {
     '^.+\\.tsx?$': 'ts-jest'
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts']
+  setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
+  maxWorkers: 1,
+  maxConcurrency: 1
 }; 
