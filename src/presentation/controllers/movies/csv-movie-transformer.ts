@@ -24,7 +24,9 @@ export class CsvMovieTransformer {
           year: parseInt(record.year),
           studios: record.studios,
           producers: record.producers,
-          winner: record.winner.toLowerCase() === CsvMovieTransformer.WINNER_VALUE
+          winner: record.winner.toLowerCase() === CsvMovieTransformer.WINNER_VALUE,
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
         callback(null, movie);
       }

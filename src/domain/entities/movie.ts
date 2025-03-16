@@ -1,10 +1,12 @@
 export interface Movie {
   id: string;
-  year: number;
   title: string;
+  year: number;
   studios: string;
   producers: string;
   winner: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type CreateMovieData = Omit<Movie, 'id'>;

@@ -17,7 +17,9 @@ export class CreateMovieController implements Controller {
         year: Number(req.body.year),
         studios: req.body.studios,
         producers: req.body.producers,
-        winner: req.body.winner === 'yes' || req.body.winner === true
+        winner: req.body.winner === 'yes' || req.body.winner === true,
+        createdAt: new Date(),
+        updatedAt: new Date()
       });
       
       return this.presenter.created(movie);

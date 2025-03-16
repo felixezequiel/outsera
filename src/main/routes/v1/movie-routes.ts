@@ -5,6 +5,8 @@ import { makeImportMoviesController } from '../../factories/movies/import-movies
 import { makeProducerAwardIntervalsController } from '../../factories/movies/producer-award-intervals-controller-factory';
 import { adaptRoute } from '../../adapters/express-controller-adapter';
 import upload from '../../middlewares/upload';
+import { makeUpdateMovieController } from '../../factories/movies/update-movie-controller-factory';
+import { makeDeleteMovieController } from '../../factories/movies/delete-movie-controller-factory';
 
 export default (router: Router): void => {
   /**
@@ -281,4 +283,121 @@ export default (router: Router): void => {
   router.get('/movies/producer-award-intervals', 
     adaptRoute(makeProducerAwardIntervalsController())
   );
+
+  /**
+   * @swagger
+   * /api/v1/movies/{id}:
+   *   put:
+   *     summary: Atualiza um filme existente
+   *     tags: [Movies]
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID do filme a ser atualizado
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title:
+   *                 type: string
+   *               year:
+   *                 type: integer
+   *               studios:
+   *                 type: string
+   *               producers:
+   *                 type: string
+   *               winner:
+   *                 type: boolean
+   *     responses:
+   *       200:
+   *         description: Filme atualizado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: string
+   *                   format: uuid
+   *                 title:
+   *                   type: string
+   *                 year:
+   *                   type: integer
+   *                 studios:
+   *                   type: string
+   *                 producers:
+   *                   type: string
+   *                 winner:
+   *                   type: boolean
+   *       400:
+   *         description: Dados inválidos no corpo da requisição
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   *       404:
+   *         description: Filme não encontrado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   *       409:
+   *         description: Já existe um filme com o mesmo título e ano
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   *       422:
+   *         description: "Erro de validação: ano inválido ou título em branco"
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   *       500:
+   *         description: Erro interno do servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   */
+  router.put('/movies/:id', adaptRoute(makeUpdateMovieController()));
+
+  /**
+   * @swagger
+   * /api/v1/movies/{id}:
+   *   delete:
+   *     summary: Remove um filme
+   *     tags: [Movies]
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID do filme a ser removido
+   *     responses:
+   *       204:
+   *         description: Filme removido com sucesso
+   *       404:
+   *         description: Filme não encontrado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   *       500:
+   *         description: Erro interno do servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorSchema'
+   */
+  router.delete('/movies/:id', adaptRoute(makeDeleteMovieController()));
 };

@@ -2,20 +2,32 @@ import { Movie, CreateMovieData, UpdateMovieData } from '../../domain/entities/m
 import { MovieRepository } from '../../data/interfaces/movie-repository';
 import { prisma } from './database';
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 export class PrismaMovieRepository implements MovieRepository {
   constructor(private readonly prisma: PrismaClient = new PrismaClient()) {}
 
   async create(data: CreateMovieData): Promise<Movie> {
-    return prisma.movie.create({
-      data
+    const movie: Movie = {
+      id: randomUUID(),
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    await prisma.movie.create({
+      data: movie
     });
+
+    return movie;
   }
 
   async findById(id: string): Promise<Movie | null> {
-    return prisma.movie.findUnique({
+    const movie = await prisma.movie.findUnique({
       where: { id }
     });
+
+    return movie;
   }
 
   async findByTitle(title: string): Promise<Movie | null> {

@@ -38,7 +38,9 @@ export class Server {
       title: record.title,
       studios: record.studios,
       producers: record.producers,
-      winner: record.winner === 'yes'
+      winner: record.winner === 'yes',
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
   }
 
