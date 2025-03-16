@@ -80,19 +80,13 @@ export class Server {
   public async start(): Promise<void> {
     const port = process.env.PORT || 3000;
 
-    try {
-      await connectDatabase();
-      await cleanDatabase();
-      await this.importInitialData();
-      
-      this.app.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
-        console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
-      });
-    } catch (error) {
-      console.error('Failed to start server:', error);
-      
-      process.exit(1);
-    }
+    await connectDatabase();
+    await cleanDatabase();
+    await this.importInitialData();
+    
+    this.app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+      console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
+    });
   }
 } 
