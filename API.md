@@ -18,8 +18,6 @@ GET http://localhost:3000/api/movies
 Accept-Version: v1
 ```
 
-Se nenhuma versão for especificada, a API utilizará a versão mais recente (atualmente v2).
-
 ## Endpoints
 
 ### Versão 1 (v1)

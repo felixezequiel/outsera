@@ -2,15 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiVersion, LATEST_VERSION, isValidVersion } from '../config/api-versions';
 
 export const versionControl = (req: Request, res: Response, next: NextFunction) => {
-  const version = req.headers['accept-version'] as string || LATEST_VERSION;
-  
-  if (!isValidVersion(version)) {
+  const [_, pathVersion] = req.path.split('/')
+  const headerVersion = req.headers['accept-version'] as string ?? req.headers['Accept-Version'] as string
+
+  const isInvalid = (!headerVersion && !isValidVersion(pathVersion)) || (headerVersion && !isValidVersion(headerVersion))
+
+  if (isInvalid) {
     return res.status(400).json({
       error: `Versão inválida. Versões disponíveis: ${Object.values(ApiVersion).join(', ')}`
     });
   }
 
-  req.apiVersion = version;
+  req.apiVersion = headerVersion || pathVersion || LATEST_VERSION;
   next();
 };
 
@@ -20,4 +23,4 @@ declare global {
       apiVersion?: string;
     }
   }
-} 
+}
