@@ -137,6 +137,57 @@ Retorna os produtores com maior e menor intervalo entre dois prêmios consecutiv
 }
 ```
 
+#### PUT /api/v1/movies/{id}
+
+Atualiza um filme existente.
+
+**Parâmetros de URL:**
+- `id`: UUID do filme a ser atualizado
+
+**Body:**
+```json
+{
+  "title": "Nome do Filme",
+  "year": 2024,
+  "studios": "Estúdio",
+  "producers": "Produtor",
+  "winner": false
+}
+```
+
+**Resposta (200):**
+```json
+{
+  "id": "uuid",
+  "title": "Nome do Filme",
+  "year": 2024,
+  "studios": "Estúdio",
+  "producers": "Produtor",
+  "winner": false,
+  "createdAt": "2024-03-16T20:00:00.000Z",
+  "updatedAt": "2024-03-16T20:30:00.000Z"
+}
+```
+
+**Erros:**
+- 400: Dados inválidos no corpo da requisição
+- 404: Filme não encontrado
+- 409: Já existe um filme com o mesmo título
+- 422: Erro de validação (ano inválido ou título em branco)
+
+#### DELETE /api/v1/movies/{id}
+
+Remove um filme existente.
+
+**Parâmetros de URL:**
+- `id`: UUID do filme a ser removido
+
+**Resposta (204):**
+Sem conteúdo
+
+**Erros:**
+- 404: Filme não encontrado
+
 ### Versão 2 (v2)
 
 A versão 2 da API atualmente mantém os mesmos endpoints da v1, preparada para futuras atualizações:
@@ -144,6 +195,8 @@ A versão 2 da API atualmente mantém os mesmos endpoints da v1, preparada para 
 - GET /api/v2/movies
 - POST /api/v2/movies
 - POST /api/v2/movies/import
+- PUT /api/v2/movies/{id}
+- DELETE /api/v2/movies/{id}
 
 ## Tratamento de Erros
 

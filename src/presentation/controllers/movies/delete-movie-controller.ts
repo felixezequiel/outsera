@@ -13,6 +13,10 @@ export class DeleteMovieController implements Controller {
     try {
       const { id } = request.params;
 
+      if (!id) {
+        return this.presenter.unprocessableEntity('ID do filme não fornecido');
+      }
+
       await this.deleteMovie.execute(id);
 
       return this.presenter.success({

@@ -7,9 +7,8 @@ import { parse } from 'csv-parse/sync';
 import { join } from 'path';
 import { config } from 'dotenv';
 import { PrismaMovieRepository } from '../../infra/db/prisma-movie-repository';
-import { DbMovieList } from '../../application/use-cases/movies/movie-list';
+import { MovieList } from '../../application/use-cases/movies/movie-list';
 import { Console } from 'console';
-import fs from 'fs';
 
 config();
 
@@ -56,7 +55,7 @@ export class Server {
       }) as MovieRecord[];
 
       const importMovies = new ImportMovies(this.movieRepository);
-      const listMovies = new DbMovieList(this.movieRepository);
+      const listMovies = new MovieList(this.movieRepository);
       
       const moviesData = records.map(record => this.convertToMovieData(record));
       await importMovies.execute(moviesData);

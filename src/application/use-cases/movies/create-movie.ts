@@ -1,4 +1,5 @@
 import { MovieRepository } from '../../../data/interfaces/movie-repository';
+import { MOVIE_MIN_YEAR } from '../../../domain/constants/movies';
 import { CreateMovieData, Movie } from '../../../domain/entities/movie';
 import { ValidationError, ConflictError, UnprocessableEntityError } from '../../../presentation/interfaces/error';
 
@@ -14,7 +15,7 @@ export class CreateMovie {
       throw new ValidationError('O ano do filme é obrigatório');
     }
 
-    if (data.year < 1900) {
+    if (data.year < MOVIE_MIN_YEAR) {
       throw new UnprocessableEntityError('O ano do filme deve ser maior que 1900');
     }
 

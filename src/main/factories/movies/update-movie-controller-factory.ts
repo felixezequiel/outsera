@@ -8,5 +8,6 @@ export const makeUpdateMovieController = (): Controller => {
   const movieRepository = new PrismaMovieRepository();
   const updateMovie = new UpdateMovie(movieRepository);
   const presenter = new HttpPresenter();
-  return new UpdateMovieController(updateMovie, presenter);
-}; 
+
+  return new UpdateMovieController(updateMovie, movieRepository, presenter);
+};

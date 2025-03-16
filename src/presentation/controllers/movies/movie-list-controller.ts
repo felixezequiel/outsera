@@ -1,11 +1,11 @@
 import { Controller } from "../../interfaces/controller";
-import { DbMovieList } from "../../../application/use-cases/movies/movie-list";
+import { MovieList } from "../../../application/use-cases/movies/movie-list";
 import { HttpResponse } from "../../interfaces/http";
 import { Presenter } from '../../interfaces/presenter';
 
 export class MovieListController implements Controller {
   constructor(
-    private readonly movieList: DbMovieList,
+    private readonly movieList: MovieList,
     private readonly presenter: Presenter
   ) {}
 
