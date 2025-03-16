@@ -67,7 +67,12 @@ export class PrismaMovieRepository implements MovieRepository {
 
   async bulkCreate(data: CreateMovieData[]): Promise<void> {
     await prisma.movie.createMany({
-      data
+      data: data.map(movie => ({
+        id: randomUUID(),
+        ...movie,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }))
     });
   }
 
