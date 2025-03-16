@@ -51,19 +51,12 @@ Para rodar os testes em modo watch (útil durante o desenvolvimento):
 npm run test:watch
 ```
 
-### Estrutura dos Testes
-
-Os testes de integração estão localizados em `src/tests/integration` e cobrem:
-- Criação de filmes (`/movies`)
-- Listagem e filtros (`/movies?year=&winner=`)
-- Importação de CSV (`/movies/import`)
-- Intervalos entre prêmios (`/movies/producer-award-intervals`)
-- Tratamento de erros e validações
-
 ## 📊 Cobertura de Testes
 
 Os testes cobrem:
 - Criação de filmes
+- Atualização de filmes
+- Deleção de filmes
 - Validações de dados
 - Busca por ano
 - Busca de vencedores
