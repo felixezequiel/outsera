@@ -8,12 +8,7 @@ export class PrismaMovieRepository implements MovieRepository {
   constructor(private readonly prisma: PrismaClient = new PrismaClient()) {}
 
   async create(data: CreateMovieData): Promise<Movie> {
-    const movie: Movie = {
-      id: randomUUID(),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const movie: Movie = { id: randomUUID(), ...data };
 
     await prisma.movie.create({
       data: movie
@@ -67,12 +62,7 @@ export class PrismaMovieRepository implements MovieRepository {
 
   async bulkCreate(data: CreateMovieData[]): Promise<void> {
     await prisma.movie.createMany({
-      data: data.map(movie => ({
-        id: randomUUID(),
-        ...movie,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }))
+      data: data.map(movie => ({ id: randomUUID(), ...movie }))
     });
   }
 
