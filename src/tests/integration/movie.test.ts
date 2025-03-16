@@ -211,4 +211,67 @@ describe('Movie Integration Tests', () => {
       }
     });
   });
+
+  describe('PUT /api/v1/movies/:id', () => {
+    it('deve atualizar um filme com sucesso', async () => {
+      const movieData = {
+        title: 'Test Movie',
+        year: 2020,
+        studios: 'Test Studios',
+        producers: 'Test Producer',
+        winner: false
+      };
+
+      const createResponse = await request(app)
+        .post('/api/v1/movies')
+        .send(movieData)  
+
+      const updateData = {
+        title: 'Updated Movie',
+        year: 2021,
+        studios: 'Updated Studios',
+        producers: 'Updated Producer',
+        winner: true
+      };
+
+      await request(app)
+        .put(`/api/v1/movies/${createResponse.body.id}`)
+        .send(updateData)
+        .expect(200);
+
+      const findMovie = await prisma.movie.findUnique({
+        where: { id: createResponse.body.id }
+      });
+
+      expect(findMovie).not.toBeNull();
+      expect(findMovie?.title).toBe(updateData.title);
+      expect(findMovie?.year).toBe(updateData.year);
+    });
+  });
+
+  describe('DELETE /api/v1/movies/:id', () => {
+    it('deve deletar um filme com sucesso', async () => {
+      const movieData = {
+        title: 'Test Movie',
+        year: 2020,
+        studios: 'Test Studios',
+        producers: 'Test Producer',
+        winner: false
+      };
+
+      const createResponse = await request(app)
+        .post('/api/v1/movies')
+        .send(movieData)
+
+      await request(app)
+        .delete(`/api/v1/movies/${createResponse.body.id}`)
+        .expect(200);
+
+      const findMovie = await prisma.movie.findUnique({
+        where: { id: createResponse.body.id }
+      });
+
+      expect(findMovie).toBeNull();
+    });
+  });
 }); 
