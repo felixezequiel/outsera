@@ -120,37 +120,25 @@ export default (router: Router): void => {
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 error:
-   *                   type: string
+   *               $ref: '#/components/schemas/ErrorSchema'
    *       409:
    *         description: Filme já existe para o mesmo título e ano
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 error:
-   *                   type: string
+   *               $ref: '#/components/schemas/ErrorSchema'
    *       422:
-   *         description: Erro de validação (ex: ano inválido, título em branco)
+   *         description: "Erro de validação: ano inválido ou título em branco"
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 error:
-   *                   type: string
+   *               $ref: '#/components/schemas/ErrorSchema'
    *       500:
    *         description: Erro interno do servidor
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 error:
-   *                   type: string
+   *               $ref: '#/components/schemas/ErrorSchema'
    */
   router.post('/movies', adaptRoute(makeCreateMovieController()));
 

@@ -1,8 +1,11 @@
 import { Movie, CreateMovieData, UpdateMovieData } from '../../domain/entities/movie';
 import { MovieRepository } from '../../data/interfaces/movie-repository';
 import { prisma } from './database';
+import { PrismaClient } from '@prisma/client';
 
 export class PrismaMovieRepository implements MovieRepository {
+  constructor(private readonly prisma: PrismaClient = new PrismaClient()) {}
+
   async create(data: CreateMovieData): Promise<Movie> {
     return prisma.movie.create({
       data
@@ -53,6 +56,12 @@ export class PrismaMovieRepository implements MovieRepository {
   async bulkCreate(data: CreateMovieData[]): Promise<void> {
     await prisma.movie.createMany({
       data
+    });
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.prisma.movie.deleteMany({
+      where: {} // força a deleção de todos os registros
     });
   }
 } 

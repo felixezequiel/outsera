@@ -18,11 +18,29 @@ export async function connectDatabase(): Promise<void> {
     )`;
     console.log('Database connected successfully');
   } catch (error) {
-    console.error('Failed to connect to database:', error);
+    console.error('Database connection failed:', error);
     throw error;
   }
 }
 
-export async function disconnectDatabase(): Promise<void> {
-  await prisma.$disconnect();
-} 
+export async function cleanDatabase(): Promise<void> {
+  try {
+    // Verificar se a tabela existe
+    const tableExists = await prisma.$queryRaw`
+      SELECT name 
+      FROM sqlite_master 
+      WHERE type='table' 
+      AND name='movies'
+    `;
+
+    if (Array.isArray(tableExists) && tableExists.length > 0) {
+      await prisma.movie.deleteMany();
+      console.log('Database cleaned successfully');
+    } else {
+      console.log('Table movies does not exist, skipping cleanup');
+    }
+  } catch (error) {
+    console.error('Failed to clean database:', error);
+    throw error;
+  }
+}

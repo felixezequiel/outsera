@@ -1,8 +1,8 @@
 {
   "name": "outsera-api",
   "version": "1.0.0",
-  "description": "API RESTful com Clean Architecture",
-  "main": "dist/index.js",
+  "description": "API para gerenciamento de filmes do Golden Raspberry Awards",
+  "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "ts-node-dev src/index.ts",

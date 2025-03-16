@@ -1,58 +1,12 @@
-import express from 'express';
 import { config } from 'dotenv';
-import { setupRoutes } from './main/routes';
-import { connectDatabase, disconnectDatabase } from './infra/db/database';
-import { versionControl } from './main/middlewares/version-control';
-import { multerErrorHandler } from './main/middlewares/multer-error-handler';
-import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './main/config/swagger';
+import { setupApp } from './main/config/app';
+import { Server } from './main/config/server';
 
 config();
 
-const app = express();
+const app = setupApp();
+const server = new Server(app);
 
-// Middlewares
-app.use(express.json());
-app.use(versionControl);
-
-// Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Rotas
-setupRoutes(app);
-
-// Error Handlers
-app.use(multerErrorHandler);
-
-const port = process.env.PORT || 3000;
-
-async function startServer() {
-  try {
-    await connectDatabase();
-    app.listen(port, () => {
-      console.log(`Server running at http://localhost:${port}`);
-      console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    await disconnectDatabase();
-    process.exit(1);
-  }
-}
-
-// Gerenciamento de desligamento gracioso
-process.on('SIGINT', async () => {
-  console.log('Shutting down server...');
-  await disconnectDatabase();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  console.log('Shutting down server...');
-  await disconnectDatabase();
-  process.exit(0);
-});
-
-startServer();
+server.start();
 
 export default app;
