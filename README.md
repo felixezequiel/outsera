@@ -14,7 +14,7 @@ Não é necessário instalar nenhum banco de dados, pois a aplicação utiliza S
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/outsera-api.git
+git clone https://github.com/felixezequiel/outsera
 cd outsera-api
 ```
 
@@ -33,6 +33,8 @@ O servidor estará disponível em `http://localhost:3000`
 ## ⚡ Testes
 
 ### Executando os Testes de Integração
+
+> **Importante:** O servidor estar parado porque é utilizado supertest para testar as chamadas de API
 
 Para rodar os testes de integração:
 ```bash
@@ -57,6 +59,22 @@ Os testes de integração estão localizados em `src/tests/integration` e cobrem
 - Importação de CSV (`/movies/import`)
 - Intervalos entre prêmios (`/movies/producer-award-intervals`)
 - Tratamento de erros e validações
+
+## 📊 Cobertura de Testes
+
+Os testes cobrem:
+- Criação de filmes
+- Validações de dados
+- Busca por ano
+- Busca de vencedores
+- Importação de CSV
+- Tratamento de erros
+- Cálculo de intervalos entre prêmios
+
+Para verificar a cobertura atual:
+```bash
+npm run test:coverage
+```
 
 ## 📚 Documentação da API
 
@@ -96,7 +114,7 @@ src/
 ├── infra/         # Implementações concretas (DB, frameworks, etc)
 ├── presentation/  # Controllers, presenters e adaptadores de UI
 ├── main/          # Configuração, composição e bootstrap
-└── tests/         # Testes de integração e unitários
+└── tests/         # Testes de integração
 ```
 
 ### Camadas
@@ -143,24 +161,6 @@ src/
 - Express
 - Swagger UI para documentação interativa
 - Documentação detalhada
-
-## 📊 Cobertura de Testes
-
-Os testes cobrem:
-- Criação de filmes
-- Validações de dados
-- Busca por ano
-- Busca de vencedores
-- Importação de CSV
-- Tratamento de erros
-- Cálculo de intervalos entre prêmios
-
-> **Importante:** O servidor estar parado
-
-Para verificar a cobertura atual:
-```bash
-npm run test:coverage
-```
 
 ## 🐛 Problemas Conhecidos
 
