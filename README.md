@@ -41,11 +41,6 @@ Para rodar os testes de integração:
 npm run test
 ```
 
-Para rodar os testes com cobertura:
-```bash
-npm run test:coverage
-```
-
 Para rodar os testes em modo watch (útil durante o desenvolvimento):
 ```bash
 npm run test:watch
