@@ -1,4 +1,5 @@
 import { MovieRepository } from "../../../data/interfaces/movie-repository";
+import { MOVIE_MIN_YEAR } from "../../../domain/constants/movies";
 import { CreateMovieData } from "../../../domain/entities/movie";
 import { ValidationError } from "../../../presentation/interfaces/error";
 import { ImportMovies } from "../../interfaces/movies";
@@ -20,7 +21,7 @@ export class ImportMoviesUseCase implements ImportMovies {
           `Filme na linha ${index + 1} não possui título`
         );
       }
-      if (!movie.year || isNaN(movie.year)) {
+      if (!movie.year || isNaN(movie.year) || movie.year < MOVIE_MIN_YEAR) {
         throw new ValidationError(
           `Filme na linha ${index + 1} possui ano inválido`
         );
