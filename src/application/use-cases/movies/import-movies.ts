@@ -16,7 +16,7 @@ export class ImportMoviesUseCase implements ImportMovies {
 
     // Validação básica dos dados
     movies.forEach((movie, index) => {
-      if (!movie.title || movie.title.trim() === '') {
+      if (!movie.title || movie.title?.trim() === '') {
         throw new ValidationError(
           `Filme na linha ${index + 1} não possui título`
         );
@@ -38,7 +38,7 @@ export class ImportMoviesUseCase implements ImportMovies {
       }
     });
 
-    // Processa em lotes para evitar sobrecarga de memória
+    // Processa em lotes para evitar sobrecarga de memória caso seja chamado diretamente em outro local que não criou o lote
     for (let i = 0; i < movies.length; i += this.BATCH_SIZE) {
       const batch = movies.slice(i, i + this.BATCH_SIZE);
       await this.movieRepository.bulkCreate(batch);
