@@ -16,7 +16,7 @@ export class ImportMoviesUseCase implements ImportMovies {
 
     // Validação básica dos dados
     movies.forEach((movie, index) => {
-      if (!movie.title?.trim()) {
+      if (!movie.title || movie.title.trim() === '') {
         throw new ValidationError(
           `Filme na linha ${index + 1} não possui título`
         );
@@ -26,12 +26,12 @@ export class ImportMoviesUseCase implements ImportMovies {
           `Filme na linha ${index + 1} possui ano inválido`
         );
       }
-      if (!movie.studios?.trim()) {
+      if (!movie.studios || movie.studios.trim() === '') {
         throw new ValidationError(
           `Filme na linha ${index + 1} não possui estúdio`
         );
       }
-      if (!movie.producers?.trim()) {
+      if (!movie.producers || movie.producers.trim() === '') {
         throw new ValidationError(
           `Filme na linha ${index + 1} não possui produtor`
         );
