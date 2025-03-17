@@ -9,5 +9,5 @@ export interface MovieRepository {
   update(id: string, data: UpdateMovieData): Promise<Movie>;
   delete(id: string): Promise<void>;
   findAll(): Promise<Movie[]>;
-  bulkCreate(data: CreateMovieData[]): Promise<void>;
+  bulkCreate(data: CreateMovieData[]): Promise<Movie[]>;
 } 

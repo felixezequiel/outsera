@@ -1,7 +1,7 @@
 import { Express, Router } from 'express';
 import v1Routes from './v1';
 import v2Routes from './v2';
-import { ApiVersion, LATEST_VERSION } from '../config/api-versions';
+import { ApiVersion } from '../config/api-versions';
 import { versionControl } from '../middlewares/version-control';
 import { createRouteMap } from '../config/route-version-map';
 
@@ -28,7 +28,7 @@ export const setupRoutes = (app: Express): void => {
   
   // Rotas sem versão no path (usando header)
   router.use((req, res, next) => {
-    const version = (req.apiVersion || LATEST_VERSION) as ApiVersion;
+    const version = (req.apiVersion) as ApiVersion;
     routeMap[version](req, res, next);
   });
 }; 

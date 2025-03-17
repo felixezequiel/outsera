@@ -60,10 +60,16 @@ export class PrismaMovieRepository implements MovieRepository {
     });
   }
 
-  async bulkCreate(data: CreateMovieData[]): Promise<void> {
-    await prisma.movie.createMany({
-      data: data.map(movie => ({ id: randomUUID(), ...movie }))
-    });
+  async bulkCreate(data: CreateMovieData[]): Promise<Movie[]> {
+    const insertedMovies = await prisma.$transaction(
+      data.map(movie =>
+        prisma.movie.create({
+          data: { id: randomUUID(), ...movie },
+        })
+      )
+    );
+  
+    return insertedMovies;
   }
 
   async deleteAll(): Promise<void> {

@@ -47,7 +47,7 @@ export class Server {
     try {
       const csvPath = join(__dirname, '../../../Movielist.csv');
       const csvContent = readFileSync(csvPath, 'utf-8');
-      
+
       const records = parse(csvContent, {
         columns: true,
         skip_empty_lines: true,

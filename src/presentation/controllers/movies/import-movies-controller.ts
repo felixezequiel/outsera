@@ -19,6 +19,7 @@ export class ImportMoviesController implements Controller {
   public async handle(req: Request, res: Response): Promise<HttpResponse> {
     try {
       this.validateRequest(req);
+      
       const movies = await this.processMoviesFile(req.file!);
       
       return this.presenter.success({
@@ -53,11 +54,14 @@ export class ImportMoviesController implements Controller {
         .pipe(transformer)
         .on('data', async (movie: CreateMovieData) => {
           currentBatch.push(movie);
+          movies.push(movie);
           
           if (currentBatch.length === ImportMoviesController.BATCH_SIZE) {
+            const payload = [...currentBatch];
+            currentBatch = [];
+
             try {
-              await this.processBatch(currentBatch, movies);
-              currentBatch = [];
+              await this.importMovies.execute(payload);
             } catch (error) {
               reject(error);
             }
@@ -66,7 +70,7 @@ export class ImportMoviesController implements Controller {
         .on('end', async () => {
           try {
             if (currentBatch.length > 0) {
-              await this.processBatch(currentBatch, movies);
+              await this.importMovies.execute(currentBatch);
             }
             resolve(movies);
           } catch (error) {
@@ -83,13 +87,5 @@ export class ImportMoviesController implements Controller {
     const bufferStream = new stream.PassThrough();
     bufferStream.end(fileBuffer);
     return bufferStream;
-  }
-
-  private async processBatch(
-    batch: CreateMovieData[], 
-    movies: CreateMovieData[]
-  ): Promise<void> {
-    await this.importMovies.execute(batch);
-    movies.push(...batch);
   }
 } 

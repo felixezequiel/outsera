@@ -1,6 +1,6 @@
 import { MovieRepository } from "../../../data/interfaces/movie-repository";
 import { MOVIE_MIN_YEAR } from "../../../domain/constants/movies";
-import { CreateMovieData } from "../../../domain/entities/movie";
+import { CreateMovieData, Movie } from "../../../domain/entities/movie";
 import { ValidationError } from "../../../presentation/interfaces/error";
 import { ImportMovies } from "../../interfaces/movies";
 
@@ -9,7 +9,7 @@ export class ImportMoviesUseCase implements ImportMovies {
 
   constructor(private readonly movieRepository: MovieRepository) {}
 
-  async execute(movies: CreateMovieData[]): Promise<void> {
+  async execute(movies: CreateMovieData[]): Promise<Movie[]> {
     if (!movies?.length) {
       throw new ValidationError("Nenhum filme para importar");
     }
@@ -38,10 +38,17 @@ export class ImportMoviesUseCase implements ImportMovies {
       }
     });
 
+    const inserted: Movie[] = [];
+
     // Processa em lotes para evitar sobrecarga de memória caso seja chamado diretamente em outro local que não criou o lote
     for (let i = 0; i < movies.length; i += this.BATCH_SIZE) {
       const batch = movies.slice(i, i + this.BATCH_SIZE);
-      await this.movieRepository.bulkCreate(batch);
+      const response = await this.movieRepository.bulkCreate(batch);
+
+      inserted.push(...response);
     }
+
+    return inserted;
+
   }
 }

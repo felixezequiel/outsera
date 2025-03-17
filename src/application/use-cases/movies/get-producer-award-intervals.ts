@@ -112,10 +112,7 @@ export class GetProducerAwardIntervalsUseCase implements GetProducerAwardInterva
   /**
    * Encontra o menor e maior intervalo de um produtor em uma única passagem
    */
-  private findProducerMinMaxInterval(
-    producer: string,
-    years: number[]
-  ): {
+  private findProducerMinMaxInterval( producer: string, years: number[]): {
     minProducerInterval: ProducerAwardInterval;
     maxProducerInterval: ProducerAwardInterval;
   } | null {
@@ -130,7 +127,7 @@ export class GetProducerAwardIntervalsUseCase implements GetProducerAwardInterva
       const interval = years[i] - years[i - 1];
 
       // Se ganhou no mesmo ano deve contabilizar como menor intervalo ?
-      if (interval < 0) continue;
+      if (interval <= 0) continue;
 
       const currentInterval = {
         producer,
