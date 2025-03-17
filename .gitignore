@@ -3,3 +3,4 @@ node_modules
 *lock.json
 coverage
 startup-data.txt
+dist

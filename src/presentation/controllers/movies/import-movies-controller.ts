@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import { Controller } from '../../interfaces/controller';
 import { Presenter } from '../../interfaces/presenter';
 import { HttpResponse } from '../../interfaces/http';
-import { ImportMovies } from '../../../application/use-cases/movies/import-movies';
 import { CreateMovieData } from '../../../domain/entities/movie';
 import { ValidationError } from '../../interfaces/error';
 import { CsvMovieTransformer } from './csv-movie-transformer';
+import { ImportMovies } from '../../../application/interfaces/movies';
 
 export class ImportMoviesController implements Controller {
   private static readonly BATCH_SIZE = 100;

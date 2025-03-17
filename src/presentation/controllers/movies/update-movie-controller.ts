@@ -1,4 +1,4 @@
-import { UpdateMovie } from '../../../application/use-cases/movies/update-movie';
+import { UpdateMovie } from '../../../application/interfaces/movies';
 import { MovieRepository } from '../../../data/interfaces/movie-repository';
 import { MOVIE_MIN_YEAR } from '../../../domain/constants/movies';
 import { UpdateMovieData } from '../../../domain/entities/movie';
@@ -31,14 +31,15 @@ export class UpdateMovieController implements Controller {
         return this.presenter.unprocessableEntity('Ano deve ser maior que 1800 e não pode ser no futuro');
       }
 
-      const movie = await this.updateMovie.execute({
-        id,
+      const data: UpdateMovieData = {
         title,
         year,
         studios,
         producers,
         winner
-      });
+      };
+
+      const movie = await this.updateMovie.execute({ id, data });
 
       return this.presenter.success({
         message: 'Filme atualizado com sucesso',

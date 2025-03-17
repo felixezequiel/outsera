@@ -1,8 +1,12 @@
-import { MovieRepository } from '../../../data/interfaces/movie-repository';
-import { ProducerAwardInterval, ProducerAwardIntervalResult } from '../../../domain/entities/producer-award-interval';
-import { Movie } from '../../../domain/entities/movie';
+import { MovieRepository } from "../../../data/interfaces/movie-repository";
+import {
+  ProducerAwardInterval,
+  ProducerAwardIntervalResult,
+} from "../../../domain/entities/producer-award-interval";
+import { Movie } from "../../../domain/entities/movie";
+import { GetProducerAwardIntervals } from "../../interfaces/movies";
 
-export class GetProducerAwardIntervals {
+export class GetProducerAwardIntervalsUseCase implements GetProducerAwardIntervals {
   constructor(private readonly movieRepository: MovieRepository) {}
 
   async execute(): Promise<ProducerAwardIntervalResult> {
@@ -16,18 +20,18 @@ export class GetProducerAwardIntervals {
    */
   private mapProducerWinsOrdered(winners: Movie[]): Map<string, number[]> {
     const producerWins = new Map<string, number[]>();
-    
+
     // Ordena os filmes por ano uma única vez
     winners.sort((a, b) => a.year - b.year);
 
     for (const movie of winners) {
       const producers = this.extractProducers(movie.producers);
-      
+
       for (const producer of producers) {
         if (!producerWins.has(producer)) {
           producerWins.set(producer, []);
         }
-        
+
         producerWins.get(producer)?.push(movie.year);
       }
     }
@@ -40,17 +44,19 @@ export class GetProducerAwardIntervals {
    */
   private extractProducers(producersString: string): string[] {
     // Separa os produtores que estão divididos por vírgula
-    const producersSplitByComma = producersString.split(',');
+    const producersSplitByComma = producersString.split(",");
 
     // Para cada grupo separado por vírgula, divide os que estão conectados por "and"
-    const producersSplitByAnd = producersSplitByComma.flatMap(producerGroup => {
-      const trimmedGroup = producerGroup.trim();
-      return trimmedGroup.split(/\s+and\s+/);
-    });
+    const producersSplitByAnd = producersSplitByComma.flatMap(
+      (producerGroup) => {
+        const trimmedGroup = producerGroup.trim();
+        return trimmedGroup.split(/\s+and\s+/);
+      }
+    );
 
     // Remove espaços em branco extras e filtra valores vazios
     const cleanedProducers = producersSplitByAnd
-      .map(producer => producer.trim())
+      .map((producer) => producer.trim())
       .filter(Boolean);
 
     return cleanedProducers;
@@ -59,7 +65,9 @@ export class GetProducerAwardIntervals {
   /**
    * Calcula os intervalos mínimos e máximos em uma única passagem
    */
-  private calculateMinMaxIntervals(producerWins: Map<string, number[]>): ProducerAwardIntervalResult {
+  private calculateMinMaxIntervals(
+    producerWins: Map<string, number[]>
+  ): ProducerAwardIntervalResult {
     let minInterval = Infinity;
     let maxInterval = -1;
     const minIntervals: ProducerAwardInterval[] = [];
@@ -70,8 +78,11 @@ export class GetProducerAwardIntervals {
       if (years.length < 2) continue;
 
       // Como os anos já estão ordenados, calculamos os intervalos em uma única passagem
-      const producerIntervals = this.findProducerMinMaxInterval(producer, years);
-      
+      const producerIntervals = this.findProducerMinMaxInterval(
+        producer,
+        years
+      );
+
       if (!producerIntervals) continue;
 
       const { minProducerInterval, maxProducerInterval } = producerIntervals;
@@ -101,9 +112,12 @@ export class GetProducerAwardIntervals {
   /**
    * Encontra o menor e maior intervalo de um produtor em uma única passagem
    */
-  private findProducerMinMaxInterval(producer: string, years: number[]): { 
-    minProducerInterval: ProducerAwardInterval; 
-    maxProducerInterval: ProducerAwardInterval; 
+  private findProducerMinMaxInterval(
+    producer: string,
+    years: number[]
+  ): {
+    minProducerInterval: ProducerAwardInterval;
+    maxProducerInterval: ProducerAwardInterval;
   } | null {
     if (years.length < 2) return null;
 
@@ -122,7 +136,7 @@ export class GetProducerAwardIntervals {
         producer,
         interval,
         previousWin: years[i - 1],
-        followingWin: years[i]
+        followingWin: years[i],
       };
 
       if (interval < minInterval) {

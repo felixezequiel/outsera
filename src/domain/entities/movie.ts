@@ -9,5 +9,5 @@ export interface Movie {
   updatedAt: Date;
 }
 
-export type CreateMovieData = Omit<Movie, 'id'>;
-export type UpdateMovieData = Partial<CreateMovieData>; 
+export type CreateMovieData = Omit<Movie, "id">;
+export type UpdateMovieData = Partial<CreateMovieData>;

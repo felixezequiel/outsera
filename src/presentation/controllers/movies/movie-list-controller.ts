@@ -1,11 +1,11 @@
+import { ListMovies } from "../../../application/interfaces/movies";
 import { Controller } from "../../interfaces/controller";
-import { MovieList } from "../../../application/use-cases/movies/movie-list";
 import { HttpResponse } from "../../interfaces/http";
 import { Presenter } from '../../interfaces/presenter';
 
 export class MovieListController implements Controller {
   constructor(
-    private readonly movieList: MovieList,
+    private readonly movieList: ListMovies,
     private readonly presenter: Presenter
   ) {}
 

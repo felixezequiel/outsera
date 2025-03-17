@@ -1,26 +1,18 @@
-import { MovieRepository } from '../../../data/interfaces/movie-repository';
-import { Movie } from '../../../domain/entities/movie';
-import { NotFoundError } from '../../../presentation/interfaces/error';
+import { MovieRepository } from "../../../data/interfaces/movie-repository";
+import { Movie } from "../../../domain/entities/movie";
+import { NotFoundError } from "../../../presentation/interfaces/error";
+import { ParamUpdateMovie, UpdateMovie } from "../../interfaces/movies";
 
-export interface UpdateMovieData {
-  id: string;
-  title?: string;
-  year?: number;
-  studios?: string;
-  producers?: string;
-  winner?: boolean;
-}
-
-export class UpdateMovie {
+export class UpdateMovieUseCase implements UpdateMovie {
   constructor(private readonly movieRepository: MovieRepository) {}
 
-  async execute(data: UpdateMovieData): Promise<Movie> {
+  async execute(data: ParamUpdateMovie): Promise<Movie> {
+    if (!data.id) throw new NotFoundError("Movie not found");
+
     const movie = await this.movieRepository.findById(data.id);
 
-    if (!movie) throw new NotFoundError('Movie not found');
-    
-    const { id, ...rest } = data;
+    if (!movie) throw new NotFoundError("Movie not found");
 
-    return this.movieRepository.update(id, rest);
+    return this.movieRepository.update(data.id, data.data);
   }
-} 
+}

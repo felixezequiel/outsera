@@ -1,14 +1,14 @@
 import { Application } from 'express';
 import { cleanDatabase, connectDatabase } from '../../infra/db/database';
-import { ImportMovies } from '../../application/use-cases/movies/import-movies';
 import { CreateMovieData } from '../../domain/entities/movie';
 import { readFileSync, createWriteStream } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { join } from 'path';
 import { config } from 'dotenv';
 import { PrismaMovieRepository } from '../../infra/db/prisma-movie-repository';
-import { MovieList } from '../../application/use-cases/movies/movie-list';
 import { Console } from 'console';
+import { ImportMoviesUseCase } from '../../application/use-cases/movies/import-movies';
+import { MovieListUseCase } from '../../application/use-cases/movies/movie-list';
 
 config();
 
@@ -54,8 +54,8 @@ export class Server {
         delimiter: ';'
       }) as MovieRecord[];
 
-      const importMovies = new ImportMovies(this.movieRepository);
-      const listMovies = new MovieList(this.movieRepository);
+      const importMovies = new ImportMoviesUseCase(this.movieRepository);
+      const listMovies = new MovieListUseCase(this.movieRepository);
       
       const moviesData = records.map(record => this.convertToMovieData(record));
       await importMovies.execute(moviesData);

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Controller } from "../../interfaces/controller";
 import { Presenter } from "../../interfaces/presenter";
 import { HttpResponse } from "../../interfaces/http";
-import { CreateMovie } from "../../../application/use-cases/movies/create-movie";
+import { CreateMovie } from "../../../application/interfaces/movies";
 
 export class CreateMovieController implements Controller {
   constructor(

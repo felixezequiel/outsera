@@ -1,4 +1,4 @@
-import { DeleteMovie } from '../../../application/use-cases/movies/delete-movie';
+import { DeleteMovie } from '../../../application/interfaces/movies';
 import { Controller } from '../../interfaces/controller';
 import { HttpRequest, HttpResponse } from '../../interfaces/http';
 import { Presenter } from '../../interfaces/presenter';

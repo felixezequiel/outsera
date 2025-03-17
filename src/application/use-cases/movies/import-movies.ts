@@ -1,30 +1,39 @@
-import { MovieRepository } from '../../../data/interfaces/movie-repository';
-import { CreateMovieData } from '../../../domain/entities/movie';
-import { ValidationError } from '../../../presentation/interfaces/error';
+import { MovieRepository } from "../../../data/interfaces/movie-repository";
+import { CreateMovieData } from "../../../domain/entities/movie";
+import { ValidationError } from "../../../presentation/interfaces/error";
+import { ImportMovies } from "../../interfaces/movies";
 
-export class ImportMovies {
+export class ImportMoviesUseCase implements ImportMovies {
   private readonly BATCH_SIZE = 100; // Tamanho do lote para processamento
 
   constructor(private readonly movieRepository: MovieRepository) {}
 
   async execute(movies: CreateMovieData[]): Promise<void> {
     if (!movies?.length) {
-      throw new ValidationError('Nenhum filme para importar');
+      throw new ValidationError("Nenhum filme para importar");
     }
 
     // Validação básica dos dados
     movies.forEach((movie, index) => {
       if (!movie.title?.trim()) {
-        throw new ValidationError(`Filme na linha ${index + 1} não possui título`);
+        throw new ValidationError(
+          `Filme na linha ${index + 1} não possui título`
+        );
       }
       if (!movie.year || isNaN(movie.year)) {
-        throw new ValidationError(`Filme na linha ${index + 1} possui ano inválido`);
+        throw new ValidationError(
+          `Filme na linha ${index + 1} possui ano inválido`
+        );
       }
       if (!movie.studios?.trim()) {
-        throw new ValidationError(`Filme na linha ${index + 1} não possui estúdio`);
+        throw new ValidationError(
+          `Filme na linha ${index + 1} não possui estúdio`
+        );
       }
       if (!movie.producers?.trim()) {
-        throw new ValidationError(`Filme na linha ${index + 1} não possui produtor`);
+        throw new ValidationError(
+          `Filme na linha ${index + 1} não possui produtor`
+        );
       }
     });
 
@@ -34,4 +43,4 @@ export class ImportMovies {
       await this.movieRepository.bulkCreate(batch);
     }
   }
-} 
+}
