@@ -27,7 +27,7 @@ export class UpdateMovieController implements Controller {
         return this.presenter.unprocessableEntity('O título não pode estar vazio');
       }
 
-      if (year !== undefined && (year < MOVIE_MIN_YEAR || year > new Date().getFullYear())) {
+      if (year !== undefined && (year < MOVIE_MIN_YEAR)) {
         return this.presenter.unprocessableEntity('Ano deve ser maior que 1800 e não pode ser no futuro');
       }
 

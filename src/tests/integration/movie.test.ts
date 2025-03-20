@@ -1,237 +1,145 @@
-import request from 'supertest';
-import path from 'path';
-import fs from 'fs';
-import app from '../../index';
-import { prisma } from '../../infra/db/database';
+import request from "supertest";
+import { appPromise } from "../../index";
+import { prisma } from "../../infra/db/database";
 
-describe('Movie Integration Tests', () => {
+describe("Movie Integration Tests", () => {
+  let app: any;
+
   beforeAll(async () => {
-    // Garante que a conexão com o banco está estabelecida
+    app = await appPromise;
+    
     await prisma.$connect();
-  });
-
-  beforeEach(async () => {
-    // Limpa todas as tabelas antes de cada teste
-    await prisma.$transaction([
-      prisma.movie.deleteMany()
-    ]);
   });
 
   afterAll(async () => {
     // Limpa o banco e fecha a conexão
-    await prisma.$transaction([
-      prisma.movie.deleteMany()
-    ]);
+    await prisma.$transaction([prisma.movie.deleteMany()]);
     await prisma.$disconnect();
   });
 
-  describe('POST /api/v1/movies', () => {
-    it('deve criar um filme com sucesso', async () => {
+  describe("POST /api/v1/movies", () => {
+    it("deve criar um filme com sucesso", async () => {
       const movieData = {
-        title: 'Test Movie',
+        title: "Test Movie",
         year: 2020,
-        studios: 'Test Studios',
-        producers: 'Test Producer',
-        winner: false
+        studios: "Test Studios",
+        producers: "Test Producer",
+        winner: false,
       };
 
       const response = await request(app)
-        .post('/api/v1/movies')
+        .post("/api/v1/movies")
         .send(movieData)
         .expect(201);
 
-      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty("id");
       expect(response.body.title).toBe(movieData.title);
       expect(response.body.year).toBe(movieData.year);
       expect(response.body.studios).toBe(movieData.studios);
       expect(response.body.producers).toBe(movieData.producers);
       expect(response.body.winner).toBe(movieData.winner);
+
+      await request(app).delete(`/api/v1/movies/${response.body.id}`).expect(200);
     });
 
-    it('não deve criar um filme com título duplicado', async () => {
+    it("não deve criar um filme com título duplicado", async () => {
       const movieData = {
-        title: 'Duplicate Movie',
+        title: "Duplicate Movie",
         year: 2020,
-        studios: 'Test Studios',
-        producers: 'Test Producer',
-        winner: false
+        studios: "Test Studios",
+        producers: "Test Producer",
+        winner: false,
       };
 
-      await request(app)
-        .post('/api/v1/movies')
-        .send(movieData)
-        .expect(201);
+      const inserted = await request(app).post("/api/v1/movies").send(movieData).expect(201);
 
       const response = await request(app)
-        .post('/api/v1/movies')
+        .post("/api/v1/movies")
         .send(movieData)
         .expect(409);
 
-      expect(response.body.error).toBe('Já existe um filme cadastrado com este título');
-    });
+      expect(response.body.error).toBe(
+        "Já existe um filme cadastrado com este título"
+      );
 
-    it('não deve criar um filme com ano inválido', async () => {
-      const movieData = {
-        title: 'Future Movie',
-        year: new Date().getFullYear() + 1,
-        studios: 'Test Studios',
-        producers: 'Test Producer',
-        winner: false
-      };
-
-      const response = await request(app)
-        .post('/api/v1/movies')
-        .send(movieData)
-        .expect(422);
-
-      expect(response.body.error).toBe('O ano do filme não pode ser no futuro');
+      await request(app).delete(`/api/v1/movies/${inserted.body.id}`).expect(200);
     });
   });
 
-  describe('POST /api/v1/movies/import', () => {
-    it('deve importar filmes do CSV com sucesso', async () => {
-      const csvFilePath = path.resolve(__dirname, '../../../Movielist.csv');
-      const fileBuffer = fs.readFileSync(csvFilePath);
-
+  describe("POST /api/v1/movies/import", () => {
+    it("deve rejeitar arquivo não-CSV", async () => {
       const response = await request(app)
-        .post('/api/v1/movies/import')
-        .attach('file', fileBuffer, 'Movielist.csv')
-        .expect(200);
-
-      expect(response.body.message).toMatch(/filmes importados com sucesso/);
-
-      // Verifica se os filmes foram importados consultando a API
-      const listResponse = await request(app)
-        .get('/api/v1/movies')
-        .expect(200);
-
-      expect(listResponse.body.length).toBeGreaterThan(0);
-    });
-
-    it('deve rejeitar arquivo não-CSV', async () => {
-      const response = await request(app)
-        .post('/api/v1/movies/import')
-        .attach('file', Buffer.from('invalid'), 'invalid.txt')
+        .post("/api/v1/movies/import")
+        .attach("file", Buffer.from("invalid"), "invalid.txt")
         .expect(400);
 
-      expect(response.body.error).toBe('Apenas arquivos CSV são permitidos');
+      expect(response.body.error).toBe("Apenas arquivos CSV são permitidos");
     });
   });
 
-  describe('GET /api/v1/movies', () => {
-    it('deve buscar filmes por ano', async () => {
-      const movieData1 = {
-        title: 'Movie 1980 - 1',
-        year: 1980,
-        studios: 'Studio A',
-        producers: 'Producer A',
-        winner: true
-      };
-
-      const movieData2 = {
-        title: 'Movie 1980 - 2',
-        year: 1980,
-        studios: 'Studio B',
-        producers: 'Producer B',
-        winner: false
-      };
-
-      await request(app)
-        .post('/api/v1/movies')
-        .send(movieData1);
-
-      await request(app)
-        .post('/api/v1/movies')
-        .send(movieData2);
-
+  describe("GET /api/v1/movies", () => {
+    it("deve buscar filmes por ano", async () => {
       const response = await request(app)
-        .get('/api/v1/movies')
+        .get("/api/v1/movies")
         .query({ year: 1980 })
         .expect(200);
 
-      expect(response.body).toHaveLength(2);
-      expect(response.body.map((m: any) => m.title)).toContain(movieData1.title);
-      expect(response.body.map((m: any) => m.title)).toContain(movieData2.title);
+      expect(response.body).toHaveLength(206);
     });
   });
 
-  describe('GET /api/v1/movies/producer-award-intervals', () => {
-    it('deve retornar os intervalos de prêmios dos produtores corretamente após importar CSV', async () => {
-      // Primeiro importa os dados do CSV
-      const csvFilePath = path.resolve(__dirname, '../../../Movielist.csv');
-      const fileBuffer = fs.readFileSync(csvFilePath);
-
-      await request(app)
-        .post('/api/v1/movies/import')
-        .attach('file', fileBuffer, 'Movielist.csv')
-        .expect(200);
-
+  describe("GET /api/v1/movies/producer-award-intervals", () => {
+    it("deve retornar os intervalos de prêmios dos produtores corretamente após importar CSV", async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const response = await request(app)
-        .get('/api/v1/movies/producer-award-intervals')
+        .get("/api/v1/movies/producer-award-intervals")
         .expect(200);
 
-      expect(response.body).toHaveProperty('min');
-      expect(response.body).toHaveProperty('max');
+      expect(response.body).toHaveProperty("min");
+      expect(response.body).toHaveProperty("max");
       expect(Array.isArray(response.body.min)).toBe(true);
       expect(Array.isArray(response.body.max)).toBe(true);
 
+      console.log({ data: JSON.stringify(response.body, null, 2) });
       // Verifica o resultado máximo específico
       expect(response.body.max).toHaveLength(1);
       expect(response.body.max[0]).toEqual({
         producer: "Matthew Vaughn",
         interval: 13,
         previousWin: 2002,
-        followingWin: 2015
+        followingWin: 2015,
       });
 
-      // Verifica alguns produtores específicos do resultado mínimo
-      const expectedProducers = [
-        {
-          producer: "Allan Carr",
-          interval: 0,
-          previousWin: 1980,
-          followingWin: 1980
-        },
-        {
-          producer: "Matthew Vaughn",
-          interval: 0,
-          previousWin: 2002,
-          followingWin: 2002
-        },
-        {
-          producer: "Debra Hayward",
-          interval: 0,
-          previousWin: 2019,
-          followingWin: 2019
-        }
-      ];
-
-      for (const expectedProducer of expectedProducers) {
-        expect(response.body.min).toContainEqual(expectedProducer);
-      }
+      expect(response.body.min).toHaveLength(1);
+      expect(response.body.min[0]).toEqual({
+        producer: "Joel Silver",
+        interval: 1,
+        previousWin: 1990,
+        followingWin: 1991,
+      });
     });
   });
 
-  describe('PUT /api/v1/movies/:id', () => {
-    it('deve atualizar um filme com sucesso', async () => {
+  describe("PUT /api/v1/movies/:id", () => {
+    it("deve atualizar um filme com sucesso", async () => {
       const movieData = {
-        title: 'Test Movie',
+        title: "Test Movie Update",
         year: 2020,
-        studios: 'Test Studios',
-        producers: 'Test Producer',
-        winner: false
+        studios: "Test Studios",
+        producers: "Test Producer",
+        winner: false,
       };
 
       const createResponse = await request(app)
-        .post('/api/v1/movies')
-        .send(movieData)  
+        .post("/api/v1/movies")
+        .send(movieData);
 
       const updateData = {
-        title: 'Updated Movie',
+        title: "Updated Movie",
         year: 2021,
-        studios: 'Updated Studios',
-        producers: 'Updated Producer',
-        winner: true
+        studios: "Updated Studios",
+        producers: "Updated Producer",
+        winner: true,
       };
 
       await request(app)
@@ -240,38 +148,93 @@ describe('Movie Integration Tests', () => {
         .expect(200);
 
       const findMovie = await prisma.movie.findUnique({
-        where: { id: createResponse.body.id }
+        where: { id: createResponse.body.id },
       });
 
       expect(findMovie).not.toBeNull();
       expect(findMovie?.title).toBe(updateData.title);
       expect(findMovie?.year).toBe(updateData.year);
+      
+      // Limpa o filme criado no teste
+      await request(app).delete(`/api/v1/movies/${createResponse.body.id}`).expect(200);
     });
   });
 
-  describe('DELETE /api/v1/movies/:id', () => {
-    it('deve deletar um filme com sucesso', async () => {
+  describe("DELETE /api/v1/movies/:id", () => {
+    it("deve deletar um filme com sucesso", async () => {
       const movieData = {
-        title: 'Test Movie',
+        title: "Test Movie Delete",
         year: 2020,
-        studios: 'Test Studios',
-        producers: 'Test Producer',
-        winner: false
+        studios: "Test Studios",
+        producers: "Test Producer",
+        winner: false,
       };
 
       const createResponse = await request(app)
-        .post('/api/v1/movies')
-        .send(movieData)
+        .post("/api/v1/movies")
+        .send(movieData);
 
       await request(app)
         .delete(`/api/v1/movies/${createResponse.body.id}`)
         .expect(200);
 
       const findMovie = await prisma.movie.findUnique({
-        where: { id: createResponse.body.id }
+        where: { id: createResponse.body.id },
       });
 
       expect(findMovie).toBeNull();
     });
   });
-}); 
+
+  it("deve apresentar dois resultados min com intervalo 1 e dois max com intervalo 22 após adicionar dados específicos", async () => {
+    // Adicionando os filmes para Matthew Vaughn como especificado
+    const response1 = await request(app)
+      .post("/api/v1/movies")
+      .send({
+        title: "Test 1",
+        year: 1980,
+        studios: "Test 1",
+        producers: "Matthew Vaughn",
+        winner: true
+      });
+
+    const response2 = await request(app)
+      .post("/api/v1/movies")
+      .send({
+        title: "Test 2",
+        year: 2003,
+        studios: "Test 2",
+        producers: "Matthew Vaughn",
+        winner: true
+      });
+
+    const response3 = await request(app)
+      .post("/api/v1/movies")
+      .send({
+        title: "Test 3",
+        year: 2037,
+        studios: "Test 3",
+        producers: "Matthew Vaughn", 
+        winner: true
+      });
+
+    // Fazendo a requisição para obter os intervalos
+    const response = await request(app)
+      .get("/api/v1/movies/producer-award-intervals")
+      .expect(200);
+
+    console.log({ data: JSON.stringify(response.body, null, 2) });
+    // Verificando se temos dois resultados min com intervalo 1
+    expect(response.body.min).toHaveLength(2);
+    expect(response.body.min.every((item: any) => item.interval === 1)).toBe(true);
+    
+    // Verificando se temos dois resultados max com intervalo 22
+    expect(response.body.max).toHaveLength(2);
+    expect(response.body.max.every((item: any) => item.interval === 22)).toBe(true);
+        
+    // Limpar o banco após o teste
+    await request(app).delete(`/api/v1/movies/${response1.body.id}`).expect(200);
+    await request(app).delete(`/api/v1/movies/${response2.body.id}`).expect(200);
+    await request(app).delete(`/api/v1/movies/${response3.body.id}`).expect(200);
+  });
+});

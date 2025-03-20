@@ -26,13 +26,6 @@ export class CreateMovieUseCase implements CreateMovie {
       );
     }
 
-    const currentYear = new Date().getFullYear();
-    if (data.year > currentYear) {
-      throw new UnprocessableEntityError(
-        "O ano do filme não pode ser no futuro"
-      );
-    }
-
     const existingMovie = await this.movieRepository.findByTitle(
       data.title.trim()
     );

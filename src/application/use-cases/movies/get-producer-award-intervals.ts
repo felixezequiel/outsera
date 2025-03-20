@@ -85,24 +85,28 @@ export class GetProducerAwardIntervalsUseCase implements GetProducerAwardInterva
 
       if (!producerIntervals) continue;
 
-      const { minProducerInterval, maxProducerInterval } = producerIntervals;
+      const { minProducerIntervals, maxProducerIntervals } = producerIntervals;
 
       // Atualiza intervalos mínimos
-      if (minProducerInterval.interval < minInterval) {
-        minInterval = minProducerInterval.interval;
-        minIntervals.length = 0;
-        minIntervals.push(minProducerInterval);
-      } else if (minProducerInterval.interval === minInterval) {
-        minIntervals.push(minProducerInterval);
+      for (const minProducerInterval of minProducerIntervals) {
+        if (minProducerInterval.interval < minInterval) {
+          minInterval = minProducerInterval.interval;
+          minIntervals.length = 0;
+          minIntervals.push(minProducerInterval);
+        } else if (minProducerInterval.interval === minInterval) {
+          minIntervals.push(minProducerInterval);
+        }
       }
 
       // Atualiza intervalos máximos
-      if (maxProducerInterval.interval > maxInterval) {
-        maxInterval = maxProducerInterval.interval;
-        maxIntervals.length = 0;
-        maxIntervals.push(maxProducerInterval);
-      } else if (maxProducerInterval.interval === maxInterval) {
-        maxIntervals.push(maxProducerInterval);
+      for (const maxProducerInterval of maxProducerIntervals) {
+        if (maxProducerInterval.interval > maxInterval) {
+          maxInterval = maxProducerInterval.interval;
+          maxIntervals.length = 0;
+          maxIntervals.push(maxProducerInterval);
+        } else if (maxProducerInterval.interval === maxInterval) {
+          maxIntervals.push(maxProducerInterval);
+        }
       }
     }
 
@@ -112,16 +116,16 @@ export class GetProducerAwardIntervalsUseCase implements GetProducerAwardInterva
   /**
    * Encontra o menor e maior intervalo de um produtor em uma única passagem
    */
-  private findProducerMinMaxInterval( producer: string, years: number[]): {
-    minProducerInterval: ProducerAwardInterval;
-    maxProducerInterval: ProducerAwardInterval;
+  private findProducerMinMaxInterval(producer: string, years: number[]): {
+    minProducerIntervals: ProducerAwardInterval[];
+    maxProducerIntervals: ProducerAwardInterval[];
   } | null {
     if (years.length < 2) return null;
 
     let minInterval = Infinity;
     let maxInterval = -1;
-    let minProducerInterval: ProducerAwardInterval | null = null;
-    let maxProducerInterval: ProducerAwardInterval | null = null;
+    let minProducerIntervals: ProducerAwardInterval[] = [];
+    let maxProducerIntervals: ProducerAwardInterval[] = [];
 
     for (let i = 1; i < years.length; i++) {
       const interval = years[i] - years[i - 1];
@@ -138,17 +142,21 @@ export class GetProducerAwardIntervalsUseCase implements GetProducerAwardInterva
 
       if (interval < minInterval) {
         minInterval = interval;
-        minProducerInterval = currentInterval;
+        minProducerIntervals = [currentInterval];
+      } else if (interval === minInterval) {
+        minProducerIntervals.push(currentInterval);
       }
 
       if (interval > maxInterval) {
         maxInterval = interval;
-        maxProducerInterval = currentInterval;
+        maxProducerIntervals = [currentInterval];
+      } else if (interval === maxInterval) {
+        maxProducerIntervals.push(currentInterval);
       }
     }
 
-    if (!minProducerInterval || !maxProducerInterval) return null;
+    if (minProducerIntervals.length === 0 || maxProducerIntervals.length === 0) return null;
 
-    return { minProducerInterval, maxProducerInterval };
+    return { minProducerIntervals, maxProducerIntervals };
   }
 }
