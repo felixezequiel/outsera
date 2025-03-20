@@ -12,7 +12,7 @@ export class MovieListController implements Controller {
   async handle(): Promise<HttpResponse> {
     try {
       const movies = await this.movieList.execute();
-      return this.presenter.success({length: movies.length, movies});
+      return this.presenter.success(movies);
     } catch (error: any) {
       return this.presenter.error(error);
     }

@@ -7,10 +7,6 @@ beforeAll(async () => {
   await connectDatabase();
 });
 
-beforeEach(async () => {
-  await cleanDatabase();
-});
-
 afterAll(async () => {
   await cleanDatabase();
   await closeDatabase();

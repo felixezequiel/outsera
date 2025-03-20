@@ -4,13 +4,10 @@ import { CreateMovieData } from '../../domain/entities/movie';
 import { readFileSync, createWriteStream } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { join } from 'path';
-import { config } from 'dotenv';
 import { SqliteMovieRepository } from '../../infra/db/sqlite-movie-repository';
 import { Console } from 'console';
 import { ImportMoviesUseCase } from '../../application/use-cases/movies/import-movies';
 import { MovieListUseCase } from '../../application/use-cases/movies/movie-list';
-
-config();
 
 const logger = new Console({
   stdout: createWriteStream('startup-data.txt'),

@@ -1,20 +1,14 @@
 import request from "supertest";
 import { appPromise } from "../../index";
-import { prisma } from "../../infra/db/database";
+import { SqliteMovieRepository } from "../../infra/db/sqlite-movie-repository";
 
 describe("Movie Integration Tests", () => {
-  let app: any;
+  let movieRepository: SqliteMovieRepository;
+  let appInstance: any;
 
   beforeAll(async () => {
-    app = await appPromise;
-    
-    await prisma.$connect();
-  });
-
-  afterAll(async () => {
-    // Limpa o banco e fecha a conexão
-    await prisma.$transaction([prisma.movie.deleteMany()]);
-    await prisma.$disconnect();
+    appInstance = await appPromise;
+    movieRepository = new SqliteMovieRepository();
   });
 
   describe("POST /api/v1/movies", () => {
@@ -27,7 +21,7 @@ describe("Movie Integration Tests", () => {
         winner: false,
       };
 
-      const response = await request(app)
+      const response = await request(appInstance)
         .post("/api/v1/movies")
         .send(movieData)
         .expect(201);
@@ -39,7 +33,7 @@ describe("Movie Integration Tests", () => {
       expect(response.body.producers).toBe(movieData.producers);
       expect(response.body.winner).toBe(movieData.winner);
 
-      await request(app).delete(`/api/v1/movies/${response.body.id}`).expect(200);
+      await request(appInstance).delete(`/api/v1/movies/${response.body.id}`).expect(200);
     });
 
     it("não deve criar um filme com título duplicado", async () => {
@@ -51,9 +45,9 @@ describe("Movie Integration Tests", () => {
         winner: false,
       };
 
-      const inserted = await request(app).post("/api/v1/movies").send(movieData).expect(201);
+      const inserted = await request(appInstance).post("/api/v1/movies").send(movieData).expect(201);
 
-      const response = await request(app)
+      const response = await request(appInstance)
         .post("/api/v1/movies")
         .send(movieData)
         .expect(409);
@@ -62,13 +56,13 @@ describe("Movie Integration Tests", () => {
         "Já existe um filme cadastrado com este título"
       );
 
-      await request(app).delete(`/api/v1/movies/${inserted.body.id}`).expect(200);
+      await request(appInstance).delete(`/api/v1/movies/${inserted.body.id}`).expect(200);
     });
   });
 
   describe("POST /api/v1/movies/import", () => {
     it("deve rejeitar arquivo não-CSV", async () => {
-      const response = await request(app)
+      const response = await request(appInstance)
         .post("/api/v1/movies/import")
         .attach("file", Buffer.from("invalid"), "invalid.txt")
         .expect(400);
@@ -79,7 +73,7 @@ describe("Movie Integration Tests", () => {
 
   describe("GET /api/v1/movies", () => {
     it("deve buscar filmes por ano", async () => {
-      const response = await request(app)
+      const response = await request(appInstance)
         .get("/api/v1/movies")
         .query({ year: 1980 })
         .expect(200);
@@ -91,7 +85,7 @@ describe("Movie Integration Tests", () => {
   describe("GET /api/v1/movies/producer-award-intervals", () => {
     it("deve retornar os intervalos de prêmios dos produtores corretamente após importar CSV", async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const response = await request(app)
+      const response = await request(appInstance)
         .get("/api/v1/movies/producer-award-intervals")
         .expect(200);
 
@@ -130,7 +124,7 @@ describe("Movie Integration Tests", () => {
         winner: false,
       };
 
-      const createResponse = await request(app)
+      const createResponse = await request(appInstance)
         .post("/api/v1/movies")
         .send(movieData);
 
@@ -142,21 +136,19 @@ describe("Movie Integration Tests", () => {
         winner: true,
       };
 
-      await request(app)
+      await request(appInstance)
         .put(`/api/v1/movies/${createResponse.body.id}`)
         .send(updateData)
         .expect(200);
 
-      const findMovie = await prisma.movie.findUnique({
-        where: { id: createResponse.body.id },
-      });
+      const findMovie = await movieRepository.findById(createResponse.body.id);
 
       expect(findMovie).not.toBeNull();
       expect(findMovie?.title).toBe(updateData.title);
       expect(findMovie?.year).toBe(updateData.year);
       
       // Limpa o filme criado no teste
-      await request(app).delete(`/api/v1/movies/${createResponse.body.id}`).expect(200);
+      await request(appInstance).delete(`/api/v1/movies/${createResponse.body.id}`).expect(200);
     });
   });
 
@@ -170,17 +162,15 @@ describe("Movie Integration Tests", () => {
         winner: false,
       };
 
-      const createResponse = await request(app)
+      const createResponse = await request(appInstance)
         .post("/api/v1/movies")
         .send(movieData);
 
-      await request(app)
+      await request(appInstance)
         .delete(`/api/v1/movies/${createResponse.body.id}`)
         .expect(200);
 
-      const findMovie = await prisma.movie.findUnique({
-        where: { id: createResponse.body.id },
-      });
+      const findMovie = await movieRepository.findById(createResponse.body.id);
 
       expect(findMovie).toBeNull();
     });
@@ -188,7 +178,7 @@ describe("Movie Integration Tests", () => {
 
   it("deve apresentar dois resultados min com intervalo 1 e dois max com intervalo 22 após adicionar dados específicos", async () => {
     // Adicionando os filmes para Matthew Vaughn como especificado
-    const response1 = await request(app)
+    const response1 = await request(appInstance)
       .post("/api/v1/movies")
       .send({
         title: "Test 1",
@@ -198,7 +188,7 @@ describe("Movie Integration Tests", () => {
         winner: true
       });
 
-    const response2 = await request(app)
+    const response2 = await request(appInstance)
       .post("/api/v1/movies")
       .send({
         title: "Test 2",
@@ -208,7 +198,7 @@ describe("Movie Integration Tests", () => {
         winner: true
       });
 
-    const response3 = await request(app)
+    const response3 = await request(appInstance)
       .post("/api/v1/movies")
       .send({
         title: "Test 3",
@@ -219,7 +209,7 @@ describe("Movie Integration Tests", () => {
       });
 
     // Fazendo a requisição para obter os intervalos
-    const response = await request(app)
+    const response = await request(appInstance)
       .get("/api/v1/movies/producer-award-intervals")
       .expect(200);
 
@@ -233,8 +223,8 @@ describe("Movie Integration Tests", () => {
     expect(response.body.max.every((item: any) => item.interval === 22)).toBe(true);
         
     // Limpar o banco após o teste
-    await request(app).delete(`/api/v1/movies/${response1.body.id}`).expect(200);
-    await request(app).delete(`/api/v1/movies/${response2.body.id}`).expect(200);
-    await request(app).delete(`/api/v1/movies/${response3.body.id}`).expect(200);
+    await request(appInstance).delete(`/api/v1/movies/${response1.body.id}`).expect(200);
+    await request(appInstance).delete(`/api/v1/movies/${response2.body.id}`).expect(200);
+    await request(appInstance).delete(`/api/v1/movies/${response3.body.id}`).expect(200);
   });
 });
