@@ -1,46 +1,79 @@
-import { PrismaClient } from '@prisma/client';
+import sqlite3 from 'sqlite3';
+import { open, Database } from 'sqlite';
 
-export const prisma = new PrismaClient();
+// Singleton para manter a conexão
+let db: Database | null = null;
 
+// Função para obter a conexão com o banco de dados
+export async function getConnection(): Promise<Database> {
+  if (!db) {
+    db = await open({
+      filename: ':memory:',
+      driver: sqlite3.Database
+    });
+    
+    // Configurações para melhorar a performance
+    await db.exec('PRAGMA journal_mode = MEMORY');
+    await db.exec('PRAGMA temp_store = MEMORY');
+    await db.exec('PRAGMA synchronous = OFF');
+  }
+  
+  return db;
+}
+
+// Inicializa o banco de dados criando as tabelas necessárias
 export async function connectDatabase(): Promise<void> {
   try {
-    await prisma.$connect();
-    // Força a criação das tabelas em memória
-    await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS movies (
-      id TEXT PRIMARY KEY,
-      title TEXT UNIQUE NOT NULL,
-      year INTEGER NOT NULL,
-      studios TEXT NOT NULL,
-      producers TEXT NOT NULL,
-      winner BOOLEAN NOT NULL DEFAULT FALSE,
-      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME NOT NULL
-    )`;
-    console.log('Database connected successfully');
+    const db = await getConnection();
+    
+    // Cria a tabela de filmes
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS movies (
+        id TEXT PRIMARY KEY,
+        title TEXT UNIQUE NOT NULL,
+        year INTEGER NOT NULL,
+        studios TEXT NOT NULL,
+        producers TEXT NOT NULL,
+        winner BOOLEAN NOT NULL DEFAULT FALSE,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    `);
+    
+    console.log('Banco de dados conectado com sucesso (em memória)');
   } catch (error) {
-    console.error('Database connection failed:', error);
+    console.error('Falha na conexão com o banco de dados:', error);
     throw error;
   }
 }
 
+// Limpa o banco de dados
 export async function cleanDatabase(): Promise<void> {
   try {
-    // Verificar se a tabela existe
-    const tableExists = await prisma.$queryRaw`
-      SELECT name 
-      FROM sqlite_master 
-      WHERE type='table' 
-      AND name='movies'
-    `;
-
-    if (Array.isArray(tableExists) && tableExists.length > 0) {
-      await prisma.movie.deleteMany();
-      console.log('Database cleaned successfully');
+    const db = await getConnection();
+    
+    // Verifica se a tabela existe
+    const tableExists = await db.get(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='movies'`
+    );
+    
+    if (tableExists) {
+      await db.exec('DELETE FROM movies');
+      console.log('Banco de dados limpo com sucesso');
     } else {
-      console.log('Table movies does not exist, skipping cleanup');
+      console.log('Tabela movies não existe, pulando limpeza');
     }
   } catch (error) {
-    console.error('Failed to clean database:', error);
+    console.error('Falha ao limpar o banco de dados:', error);
     throw error;
+  }
+}
+
+// Fecha a conexão
+export async function closeDatabase(): Promise<void> {
+  if (db) {
+    await db.close();
+    db = null;
+    console.log('Conexão com o banco de dados fechada');
   }
 }

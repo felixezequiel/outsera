@@ -2,6 +2,10 @@ import { config } from 'dotenv';
 import { setupApp } from './main/config/app';
 import { Server } from './main/config/server';
 
+// Força uso de banco de dados em memória antes de carregar dotenv
+process.env.DATABASE_URL = 'file::memory:?cache=shared';
+
+// Carrega outras variáveis de ambiente
 config();
 
 const app = setupApp();

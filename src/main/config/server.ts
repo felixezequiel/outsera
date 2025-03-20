@@ -5,7 +5,7 @@ import { readFileSync, createWriteStream } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { join } from 'path';
 import { config } from 'dotenv';
-import { PrismaMovieRepository } from '../../infra/db/prisma-movie-repository';
+import { SqliteMovieRepository } from '../../infra/db/sqlite-movie-repository';
 import { Console } from 'console';
 import { ImportMoviesUseCase } from '../../application/use-cases/movies/import-movies';
 import { MovieListUseCase } from '../../application/use-cases/movies/movie-list';
@@ -25,10 +25,10 @@ interface MovieRecord {
 }
 
 export class Server {
-  private readonly movieRepository: PrismaMovieRepository;
+  private readonly movieRepository: SqliteMovieRepository;
   
   constructor(private readonly app: Application) {
-    this.movieRepository = new PrismaMovieRepository();
+    this.movieRepository = new SqliteMovieRepository();
   }
 
   private convertToMovieData(record: MovieRecord): CreateMovieData {
